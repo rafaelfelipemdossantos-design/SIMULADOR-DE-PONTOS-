@@ -29,7 +29,7 @@
             <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
                 <i class="fa-solid fa-chart-line text-yellow-400"></i> Simulador KPI
             </h1>
-            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.2</span>
+            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.3</span>
         </div>
     </header>
 
@@ -360,7 +360,6 @@
             
             document.getElementById('dash-total').innerText = `${grandTotalGot} / ${grandTotalMax}`;
 
-            // Lógica de Classificação da Loja (Perfeita, Boa, Regular, Ruim)
             updateClassification(grandTotalGot);
         }
 
@@ -410,11 +409,88 @@
             }
         }
 
-        // Função para Gerar PDF Profissional
+        // Função de Copiar Universal (Resolve o erro do WhatsApp em arquivos locais)
+        function fallbackCopyTextToClipboard(text) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                var successful = document.execCommand('copy');
+                if(successful) alert("Relatório copiado! Agora é só colar no WhatsApp.");
+                else alert("Não foi possível copiar. Tente selecionar o texto manualmente.");
+            } catch (err) {
+                alert("Erro ao copiar no seu dispositivo.");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function shareReport() {
+            const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
+            const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
+            const agora = new Date();
+            const dataStr = agora.toLocaleDateString('pt-BR');
+            const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
+            const sections = db[currentModel].items;
+            
+            for (let sec in sections) {
+                sections[sec].forEach(item => {
+                    const weight = item.scores[currentChannel] || 0;
+                    if (weight > 0) {
+                        totals[sec].max += weight;
+                        if (responses[item.id] === true) totals[sec].got += weight;
+                    }
+                });
+            }
+            
+            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
+            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
+
+            let statusEmoji = '⚪';
+            if (totalGot > 90) statusEmoji = '🟢';
+            else if (totalGot > 65) statusEmoji = '🔵';
+            else if (totalGot > 35) statusEmoji = '🟡';
+            else if (totalGot > 0) statusEmoji = '🔴';
+
+            let text = `📊 *AUDITORIA DE LOJA*\n`;
+            text += `👤 *Promotor:* ${promotor}\n`;
+            text += `🏪 *Loja:* ${loja}\n`;
+            text += `📅 *Data:* ${dataStr} às ${horaStr}\n`;
+            text += `🏢 *Modelo:* ${currentModel.toUpperCase()} | *Canal:* ${currentChannel}\n`;
+            text += `----------------------------------\n`;
+            if(totals.SOS.max > 0) text += `🔸 *SOS:* ${totals.SOS.got}/${totals.SOS.max}\n`;
+            if(totals.CKO.max > 0) text += `🔸 *CKO/CKT:* ${totals.CKO.got}/${totals.CKO.max}\n`;
+            if(totals.PE.max > 0) text += `🔸 *PE:* ${totals.PE.got}/${totals.PE.max}\n`;
+            if(totals.KBDs.max > 0) text += `🔸 *KBDs:* ${totals.KBDs.got}/${totals.KBDs.max}\n`;
+            text += `----------------------------------\n`;
+            text += `🏆 *TOTAL:* *${totalGot}* / ${totalMax} pts\n`;
+            text += `${statusEmoji} *STATUS:* *${currentStatusText}*\n`;
+            text += `----------------------------------\n`;
+            text += `_Gerado via Simulador KPI_`;
+
+            // Usa o método moderno se disponível e seguro, senão usa o fallback
+            if (!navigator.clipboard) {
+                fallbackCopyTextToClipboard(text);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(function() {
+                alert("Relatório copiado! Agora é só colar no WhatsApp.");
+            }, function(err) {
+                fallbackCopyTextToClipboard(text);
+            });
+        }
+
+        // Função do PDF ajustada (Força a renderização criando o elemento fisicamente no corpo da página)
         function downloadPDF() {
             const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
             const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
-            
             const agora = new Date();
             const dataStr = agora.toLocaleDateString('pt-BR');
             const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -448,17 +524,20 @@
             const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
             const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
             
-            // Define a cor da tag no PDF
-            let colorHex = '#9ca3af'; // Aguardando
-            if (totalGot > 90) colorHex = '#22c55e'; // Verde
-            else if (totalGot > 65) colorHex = '#3b82f6'; // Azul
-            else if (totalGot > 35) colorHex = '#facc15'; // Amarelo
-            else if (totalGot > 0) colorHex = '#ef4444'; // Vermelho
+            let colorHex = '#9ca3af'; 
+            if (totalGot > 90) colorHex = '#22c55e'; 
+            else if (totalGot > 65) colorHex = '#3b82f6'; 
+            else if (totalGot > 35) colorHex = '#facc15'; 
+            else if (totalGot > 0) colorHex = '#ef4444'; 
 
-            // Estrutura Visual do PDF
+            // Cria o container do PDF invisível na tela real
             const pdfContainer = document.createElement('div');
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            pdfContainer.style.top = '0';
+            pdfContainer.style.width = '800px'; 
             pdfContainer.innerHTML = `
-                <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333;">
+                <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; background: #fff;">
                     <h1 style="color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 24px;">Relatório de Loja</h1>
                     <p style="text-align: center; color: #666; margin-top: 0; font-size: 14px;">Gerado via Simulador KPI</p>
                     <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
@@ -494,7 +573,8 @@
                 </div>
             `;
 
-            // Configuração e geração via html2pdf
+            document.body.appendChild(pdfContainer); // Anexa para o navegador conseguir "ler" o visual
+
             const opt = {
                 margin:       [0, 0, 0, 0],
                 filename:     nomeArquivo,
@@ -503,79 +583,29 @@
                 jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' }
             };
 
-            // Notifica o usuário que o download começou
             const btn = document.querySelector('button[onclick="downloadPDF()"]');
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando...`;
             
             html2pdf().set(opt).from(pdfContainer).save().then(() => {
                 btn.innerHTML = originalText;
+                document.body.removeChild(pdfContainer); // Limpa a página depois de gerar
+            }).catch(err => {
+                btn.innerHTML = originalText;
+                alert("Ocorreu um erro ao gerar o PDF. Verifique o seu navegador.");
+                document.body.removeChild(pdfContainer);
             });
         }
 
-        function shareReport() {
-            const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
-            const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
-            const agora = new Date();
-            const dataStr = agora.toLocaleDateString('pt-BR');
-            const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-            let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
-            const sections = db[currentModel].items;
-            
-            for (let sec in sections) {
-                sections[sec].forEach(item => {
-                    const weight = item.scores[currentChannel] || 0;
-                    if (weight > 0) {
-                        totals[sec].max += weight;
-                        if (responses[item.id] === true) totals[sec].got += weight;
-                    }
-                });
-            }
-            
-            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
-            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
-
-            // Definir o Emoji correspondente ao status
-            let statusEmoji = '⚪';
-            if (totalGot > 90) statusEmoji = '🟢';
-            else if (totalGot > 65) statusEmoji = '🔵';
-            else if (totalGot > 35) statusEmoji = '🟡';
-            else if (totalGot > 0) statusEmoji = '🔴';
-
-            let text = `📊 *AUDITORIA DE LOJA*\n`;
-            text += `👤 *Promotor:* ${promotor}\n`;
-            text += `🏪 *Loja:* ${loja}\n`;
-            text += `📅 *Data:* ${dataStr} às ${horaStr}\n`;
-            text += `🏢 *Modelo:* ${currentModel.toUpperCase()} | *Canal:* ${currentChannel}\n`;
-            text += `----------------------------------\n`;
-            if(totals.SOS.max > 0) text += `🔸 *SOS:* ${totals.SOS.got}/${totals.SOS.max}\n`;
-            if(totals.CKO.max > 0) text += `🔸 *CKO/CKT:* ${totals.CKO.got}/${totals.CKO.max}\n`;
-            if(totals.PE.max > 0) text += `🔸 *PE:* ${totals.PE.got}/${totals.PE.max}\n`;
-            if(totals.KBDs.max > 0) text += `🔸 *KBDs:* ${totals.KBDs.got}/${totals.KBDs.max}\n`;
-            text += `----------------------------------\n`;
-            text += `🏆 *TOTAL:* *${totalGot}* / ${totalMax} pts\n`;
-            text += `${statusEmoji} *STATUS:* *${currentStatusText}*\n`;
-            text += `----------------------------------\n`;
-            text += `_Gerado via Simulador KPI_`;
-
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Relatório copiado para a Área de Transferência! Agora basta colar no WhatsApp.");
-            }).catch(() => {
-                alert("Erro ao copiar. O navegador pode estar bloqueando a ação.");
-            });
-        }
-
-        // Registro do Service Worker para o PWA (instalação no celular)
+        // Registro do Service Worker para o PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registrado com sucesso!'))
-                    .catch(err => console.error('Erro ao registrar Service Worker:', err));
+                    .then(reg => console.log('Service Worker registrado!'))
+                    .catch(err => console.error('Erro no SW:', err));
             });
         }
 
-        // Inicia o app
         changeModel('lego');
     </script>
 </body>
