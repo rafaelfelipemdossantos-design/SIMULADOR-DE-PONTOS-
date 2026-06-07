@@ -29,7 +29,7 @@
             <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
                 <i class="fa-solid fa-chart-line text-yellow-400"></i> Simulador KPI
             </h1>
-            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.3</span>
+            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.4</span>
         </div>
     </header>
 
@@ -119,7 +119,7 @@
                 <i class="fa-solid fa-file-pdf"></i> Baixar PDF
             </button>
             <button onclick="shareReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 w-full text-sm">
-                <i class="fa-brands fa-whatsapp text-lg"></i> Copiar Relatório
+                <i class="fa-brands fa-whatsapp text-lg"></i> Enviar WhatsApp
             </button>
         </div>
 
@@ -409,27 +409,124 @@
             }
         }
 
-        // Função de Copiar Universal (Resolve o erro do WhatsApp em arquivos locais)
-        function fallbackCopyTextToClipboard(text) {
-            var textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+        // ==========================================
+        // GERAÇÃO DO PDF - REESCRITA PARA MOBILE
+        // ==========================================
+        function downloadPDF() {
+            const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
+            const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
+            const agora = new Date();
+            const dataStr = agora.toLocaleDateString('pt-BR');
+            const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const lojaLimpa = loja.replace(/[^a-zA-Z0-9]/g, '_');
+            const dataInversa = agora.toISOString().split('T')[0];
+            const nomeArquivo = `Auditoria_${lojaLimpa}_${dataInversa}.pdf`;
 
-            try {
-                var successful = document.execCommand('copy');
-                if(successful) alert("Relatório copiado! Agora é só colar no WhatsApp.");
-                else alert("Não foi possível copiar. Tente selecionar o texto manualmente.");
-            } catch (err) {
-                alert("Erro ao copiar no seu dispositivo.");
+            let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
+            const sections = db[currentModel].items;
+            
+            let htmlItemsSim = '';
+            let htmlItemsNao = '';
+
+            for (let sec in sections) {
+                sections[sec].forEach(item => {
+                    const weight = item.scores[currentChannel] || 0;
+                    if (weight > 0) {
+                        totals[sec].max += weight;
+                        const labelSec = sec === 'CKO' ? 'CKO/CKT' : sec;
+                        if (responses[item.id] === true) {
+                            totals[sec].got += weight;
+                            htmlItemsSim += `<li style="margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 11px;">(${weight} pts)</span></li>`;
+                        } else if (responses[item.id] === false) {
+                            htmlItemsNao += `<li style="margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 11px;">(${weight} pts)</span></li>`;
+                        }
+                    }
+                });
             }
-            document.body.removeChild(textArea);
+            
+            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
+            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
+            
+            let colorHex = '#9ca3af'; 
+            if (totalGot > 90) colorHex = '#22c55e'; 
+            else if (totalGot > 65) colorHex = '#3b82f6'; 
+            else if (totalGot > 35) colorHex = '#facc15'; 
+            else if (totalGot > 0) colorHex = '#ef4444'; 
+
+            // Construção do Container Invisível mas Otimizado para não bugar o WebView do Android
+            const pdfContainer = document.createElement('div');
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            pdfContainer.style.top = '0';
+            pdfContainer.style.width = '800px'; 
+            pdfContainer.style.backgroundColor = '#ffffff'; 
+            
+            pdfContainer.innerHTML = `
+                <div style="padding: 40px; font-family: Helvetica, Arial, sans-serif; color: #333; background-color: #fff; width: 800px; box-sizing: border-box;">
+                    <h1 style="color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 26px;">Relatório de Auditoria de Loja</h1>
+                    <p style="text-align: center; color: #666; margin-top: 0; font-size: 14px;">Simulador de Performance</p>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    
+                    <table style="width: 100%; margin-bottom: 25px; font-size: 15px;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Promotor:</strong> ${promotor}</td>
+                            <td style="padding: 5px 0; text-align: right;"><strong>Loja:</strong> ${loja}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Data:</strong> ${dataStr} às ${horaStr}</td>
+                            <td style="padding: 5px 0; text-align: right;"><strong>Canal:</strong> ${currentChannel} (${currentModel.toUpperCase()})</td>
+                        </tr>
+                    </table>
+
+                    <div style="background-color: #f8fafc; padding: 25px; border-radius: 8px; text-align: center; margin-bottom: 30px; border: 1px solid #cbd5e1;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #475569; letter-spacing: 1px;">PONTUAÇÃO TOTAL ATINGIDA</h2>
+                        <div style="font-size: 42px; font-weight: bold; margin-bottom: 15px; color: #0f172a;">${totalGot} <span style="font-size: 20px; color: #94a3b8;">/ ${totalMax} pts</span></div>
+                        <div style="display: inline-block; background-color: ${colorHex}; color: ${totalGot > 35 && totalGot <= 65 ? '#713f12' : '#ffffff'}; padding: 8px 30px; border-radius: 50px; font-weight: bold; letter-spacing: 1px; font-size: 16px;">
+                            STATUS: ${currentStatusText}
+                        </div>
+                    </div>
+
+                    <h3 style="color: #16a34a; border-bottom: 2px solid #16a34a; padding-bottom: 5px; font-size: 16px;">✅ Itens Executados (SIM)</h3>
+                    <ul style="list-style-type: none; padding-left: 0; font-size: 14px; margin-bottom: 30px;">
+                        ${htmlItemsSim || '<li style="color:#94a3b8; font-style: italic;">Nenhum item marcado como SIM.</li>'}
+                    </ul>
+
+                    <h3 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px; font-size: 16px;">❌ Itens Pendentes (NÃO)</h3>
+                    <ul style="list-style-type: none; padding-left: 0; font-size: 14px;">
+                        ${htmlItemsNao || '<li style="color:#94a3b8; font-style: italic;">Nenhum item marcado como NÃO.</li>'}
+                    </ul>
+                </div>
+            `;
+
+            document.body.appendChild(pdfContainer);
+
+            // Opções forçando a resolução de leitura para o tamanho de 800px (salva a renderização no Android)
+            const opt = {
+                margin:       10, // Margem de 10mm
+                filename:     nomeArquivo,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            const btn = document.querySelector('button[onclick="downloadPDF()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando...`;
+            
+            html2pdf().set(opt).from(pdfContainer).save().then(() => {
+                btn.innerHTML = originalText;
+                document.body.removeChild(pdfContainer); 
+            }).catch(err => {
+                btn.innerHTML = originalText;
+                alert("Falha na renderização visual do Android. Tente usar o envio direto pelo WhatsApp.");
+                document.body.removeChild(pdfContainer);
+            });
         }
 
+        // ==========================================
+        // ENVIO DIRETO PARA O WHATSAPP
+        // ==========================================
         function shareReport() {
             const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
             const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
@@ -475,137 +572,21 @@
             text += `----------------------------------\n`;
             text += `_Gerado via Simulador KPI_`;
 
-            // Usa o método moderno se disponível e seguro, senão usa o fallback
-            if (!navigator.clipboard) {
-                fallbackCopyTextToClipboard(text);
-                return;
-            }
-            navigator.clipboard.writeText(text).then(function() {
-                alert("Relatório copiado! Agora é só colar no WhatsApp.");
-            }, function(err) {
-                fallbackCopyTextToClipboard(text);
-            });
+            // Abre a URL mágica do WhatsApp que já direciona direto pro app com o texto pronto!
+            const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(urlWhatsApp, '_blank');
         }
 
-        // Função do PDF ajustada (Força a renderização criando o elemento fisicamente no corpo da página)
-        function downloadPDF() {
-            const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
-            const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
-            const agora = new Date();
-            const dataStr = agora.toLocaleDateString('pt-BR');
-            const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            
-            const lojaLimpa = loja.replace(/[^a-zA-Z0-9]/g, '_');
-            const dataInversa = agora.toISOString().split('T')[0];
-            const nomeArquivo = `Auditoria_${lojaLimpa}_${dataInversa}.pdf`;
-
-            let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
-            const sections = db[currentModel].items;
-            
-            let htmlItemsSim = '';
-            let htmlItemsNao = '';
-
-            for (let sec in sections) {
-                sections[sec].forEach(item => {
-                    const weight = item.scores[currentChannel] || 0;
-                    if (weight > 0) {
-                        totals[sec].max += weight;
-                        const labelSec = sec === 'CKO' ? 'CKO/CKT' : sec;
-                        if (responses[item.id] === true) {
-                            totals[sec].got += weight;
-                            htmlItemsSim += `<li style="margin-bottom: 5px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 12px;">(${weight} pts)</span></li>`;
-                        } else if (responses[item.id] === false) {
-                            htmlItemsNao += `<li style="margin-bottom: 5px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 12px;">(${weight} pts)</span></li>`;
-                        }
-                    }
-                });
-            }
-            
-            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
-            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
-            
-            let colorHex = '#9ca3af'; 
-            if (totalGot > 90) colorHex = '#22c55e'; 
-            else if (totalGot > 65) colorHex = '#3b82f6'; 
-            else if (totalGot > 35) colorHex = '#facc15'; 
-            else if (totalGot > 0) colorHex = '#ef4444'; 
-
-            // Cria o container do PDF invisível na tela real
-            const pdfContainer = document.createElement('div');
-            pdfContainer.style.position = 'absolute';
-            pdfContainer.style.left = '-9999px';
-            pdfContainer.style.top = '0';
-            pdfContainer.style.width = '800px'; 
-            pdfContainer.innerHTML = `
-                <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; background: #fff;">
-                    <h1 style="color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 24px;">Relatório de Loja</h1>
-                    <p style="text-align: center; color: #666; margin-top: 0; font-size: 14px;">Gerado via Simulador KPI</p>
-                    <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
-                    
-                    <table style="width: 100%; margin-bottom: 20px; font-size: 14px;">
-                        <tr>
-                            <td style="padding: 5px 0;"><strong>Promotor:</strong> ${promotor}</td>
-                            <td style="padding: 5px 0; text-align: right;"><strong>Loja:</strong> ${loja}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px 0;"><strong>Data:</strong> ${dataStr} às ${horaStr}</td>
-                            <td style="padding: 5px 0; text-align: right;"><strong>Canal:</strong> ${currentChannel} (${currentModel.toUpperCase()})</td>
-                        </tr>
-                    </table>
-
-                    <div style="background-color: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 30px; border: 1px solid #e2e8f0;">
-                        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #475569;">PONTUAÇÃO TOTAL</h2>
-                        <div style="font-size: 36px; font-weight: bold; margin-bottom: 15px; color: #1e293b;">${totalGot} <span style="font-size: 18px; color: #94a3b8;">/ ${totalMax} pts</span></div>
-                        <div style="display: inline-block; background-color: ${colorHex}; color: ${totalGot > 35 && totalGot <= 65 ? '#713f12' : '#fff'}; padding: 8px 24px; border-radius: 50px; font-weight: bold; letter-spacing: 1px; font-size: 16px;">
-                            ${currentStatusText}
-                        </div>
-                    </div>
-
-                    <h3 style="color: #16a34a; border-bottom: 2px solid #16a34a; padding-bottom: 5px;">✅ Itens Executados (SIM)</h3>
-                    <ul style="list-style-type: none; padding-left: 0; font-size: 13px;">
-                        ${htmlItemsSim || '<li style="color:#999;">Nenhum item marcado como SIM.</li>'}
-                    </ul>
-
-                    <h3 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px; margin-top: 30px;">❌ Itens Pendentes (NÃO)</h3>
-                    <ul style="list-style-type: none; padding-left: 0; font-size: 13px;">
-                        ${htmlItemsNao || '<li style="color:#999;">Nenhum item marcado como NÃO.</li>'}
-                    </ul>
-                </div>
-            `;
-
-            document.body.appendChild(pdfContainer); // Anexa para o navegador conseguir "ler" o visual
-
-            const opt = {
-                margin:       [0, 0, 0, 0],
-                filename:     nomeArquivo,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' }
-            };
-
-            const btn = document.querySelector('button[onclick="downloadPDF()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando...`;
-            
-            html2pdf().set(opt).from(pdfContainer).save().then(() => {
-                btn.innerHTML = originalText;
-                document.body.removeChild(pdfContainer); // Limpa a página depois de gerar
-            }).catch(err => {
-                btn.innerHTML = originalText;
-                alert("Ocorreu um erro ao gerar o PDF. Verifique o seu navegador.");
-                document.body.removeChild(pdfContainer);
-            });
-        }
-
-        // Registro do Service Worker para o PWA
+        // Registro do Service Worker para o PWA (instalação no celular)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registrado!'))
-                    .catch(err => console.error('Erro no SW:', err));
+                    .then(reg => console.log('Service Worker registrado com sucesso!'))
+                    .catch(err => console.error('Erro ao registrar Service Worker:', err));
             });
         }
 
+        // Inicia o app
         changeModel('lego');
     </script>
 </body>
