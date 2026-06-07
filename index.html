@@ -13,10 +13,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         .active-tab { border-bottom-width: 4px; border-color: #1e40af; color: #1e40af; font-weight: bold; }
-        .btn-sim.active { background-color: #22c55e; color: white; }
-        .btn-nao.active { background-color: #ef4444; color: white; }
+        .btn-sim.active { background-color: #22c55e; color: white; border-color: #22c55e; }
+        .btn-nao.active { background-color: #ef4444; color: white; border-color: #ef4444; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen pb-12">
@@ -24,61 +27,99 @@
     <header class="bg-blue-900 text-white shadow-md sticky top-0 z-50">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
             <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
-                <i class="fa-solid fa-chart-line text-yellow-400"></i> Simulador de Pontuação
+                <i class="fa-solid fa-chart-line text-yellow-400"></i> Simulador KPI
             </h1>
-            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.0</span>
+            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.2</span>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 mt-4 space-y-6">
+    <main class="max-w-4xl mx-auto px-4 mt-4 space-y-5">
 
-        <div class="bg-white rounded-xl shadow-sm p-2 flex border border-gray-200">
-            <button onclick="changeModel('lego')" id="btn-model-lego" class="flex-1 py-3 text-center font-bold rounded-lg transition-all text-blue-950 bg-blue-50">
-                <i class="fa-solid fa-cubes mr-2 text-blue-600"></i>LEGO (Diretos)
+        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nome do Promotor</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fa-solid fa-user text-xs"></i>
+                    </span>
+                    <input type="text" id="input-promotor" placeholder="Seu nome" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-gray-50 font-medium">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nome da Loja</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fa-solid fa-shop text-xs"></i>
+                    </span>
+                    <input type="text" id="input-loja" placeholder="Ex: Supermercado Ferraz" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-gray-50 font-medium">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-2 flex border border-gray-200 gap-2">
+            <button onclick="changeModel('lego')" id="btn-model-lego" class="flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-blue-950 bg-blue-50">
+                <i class="fa-solid fa-cubes mr-1 text-blue-600"></i> LEGO (Diretos)
             </button>
-            <button onclick="changeModel('storeplatform')" id="btn-model-store" class="flex-1 py-3 text-center font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-                <i class="fa-solid fa-shop mr-2 text-gray-400"></i>Storeplatform (Indiretos)
+            <button onclick="changeModel('storeplatform')" id="btn-model-store" class="flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-gray-500 hover:bg-gray-50">
+                <i class="fa-solid fa-shop mr-1 text-gray-400"></i> Storeplatform
             </button>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+        <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-200">
             <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Canal da Loja</label>
             <div id="channel-container" class="grid grid-cols-5 gap-2">
                 </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center shadow-xs">
-                <p class="text-xs font-bold text-amber-800">SOS</p>
-                <p class="text-xl font-black text-amber-950" id="dash-sos">0 / 0</p>
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-4">
+            
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
+                    <p class="text-[10px] font-bold text-amber-800 uppercase">SOS</p>
+                    <p class="text-lg font-black text-amber-950" id="dash-sos">0 / 0</p>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-2 text-center">
+                    <p class="text-[10px] font-bold text-purple-800 uppercase">CKO / CKT</p>
+                    <p class="text-lg font-black text-purple-950" id="dash-cko">0 / 0</p>
+                </div>
+                <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-2 text-center">
+                    <p class="text-[10px] font-bold text-cyan-800 uppercase">PE</p>
+                    <p class="text-lg font-black text-cyan-950" id="dash-pe">0 / 0</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
+                    <p class="text-[10px] font-bold text-green-800 uppercase">KBDs</p>
+                    <p class="text-lg font-black text-green-950" id="dash-kbds">0 / 0</p>
+                </div>
+                <div class="bg-blue-900 rounded-lg p-2 text-center col-span-2 sm:col-span-1 text-white flex flex-col justify-center">
+                    <p class="text-[10px] font-bold text-blue-200 uppercase">Total Loja</p>
+                    <p class="text-xl font-black text-yellow-400" id="dash-total">0 / 0</p>
+                </div>
             </div>
-            <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center shadow-xs">
-                <p class="text-xs font-bold text-purple-800">CKO / CKT</p>
-                <p class="text-xl font-black text-purple-950" id="dash-cko">0 / 0</p>
+
+            <div class="pt-2 border-t border-gray-100 text-center">
+                <p class="text-[11px] font-bold uppercase text-gray-400 mb-1">Status da Loja</p>
+                <div id="status-badge" class="inline-block px-8 py-1.5 rounded-full text-white font-black text-lg bg-gray-300 transition-colors">
+                    AGUARDANDO
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3 overflow-hidden">
+                    <div id="status-bar" class="bg-gray-300 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
             </div>
-            <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-3 text-center shadow-xs">
-                <p class="text-xs font-bold text-cyan-800">PE</p>
-                <p class="text-xl font-black text-cyan-950" id="dash-pe">0 / 0</p>
-            </div>
-            <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-center shadow-xs">
-                <p class="text-xs font-bold text-green-800">KBDs</p>
-                <p class="text-xl font-black text-green-950" id="dash-kbds">0 / 0</p>
-            </div>
-            <div class="bg-blue-900 rounded-xl p-3 text-center col-span-2 sm:col-span-1 text-white shadow-md">
-                <p class="text-xs font-bold text-blue-200">Total Loja</p>
-                <p class="text-2xl font-black text-yellow-400" id="dash-total">0 / 0</p>
-            </div>
+
         </div>
 
-        <div id="checklist-form" class="space-y-6">
+        <div id="checklist-form" class="space-y-4">
             </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-            <button onclick="clearForm()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3.5 px-4 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2">
-                <i class="fa-solid fa-trash-can"></i> Limpar Questionário
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <button onclick="clearForm()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 w-full text-sm">
+                <i class="fa-solid fa-trash-can"></i> Limpar Tudo
             </button>
-            <button onclick="shareReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
-                <i class="fa-brands fa-whatsapp text-lg"></i> Copiar Relatório WhatsApp
+            <button onclick="downloadPDF()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 w-full text-sm">
+                <i class="fa-solid fa-file-pdf"></i> Baixar PDF
+            </button>
+            <button onclick="shareReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 w-full text-sm">
+                <i class="fa-brands fa-whatsapp text-lg"></i> Copiar Relatório
             </button>
         </div>
 
@@ -88,6 +129,7 @@
         let currentModel = 'lego';
         let currentChannel = 'C&C';
         let responses = {};
+        let currentStatusText = 'AGUARDANDO';
 
         const db = {
             lego: {
@@ -207,8 +249,8 @@
 
         function changeModel(model) {
             currentModel = model;
-            document.getElementById('btn-model-lego').className = model === 'lego' ? 'flex-1 py-3 text-center font-bold rounded-lg transition-all text-blue-950 bg-blue-50 border border-blue-200' : 'flex-1 py-3 text-center font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50';
-            document.getElementById('btn-model-store').className = model === 'storeplatform' ? 'flex-1 py-3 text-center font-bold rounded-lg transition-all text-blue-950 bg-blue-50 border border-blue-200' : 'flex-1 py-3 text-center font-bold rounded-lg transition-all text-gray-500 hover:bg-gray-50';
+            document.getElementById('btn-model-lego').className = model === 'lego' ? 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-blue-950 bg-blue-50 border border-blue-200' : 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-gray-500 hover:bg-gray-50';
+            document.getElementById('btn-model-store').className = model === 'storeplatform' ? 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-blue-950 bg-blue-50 border border-blue-200' : 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-gray-500 hover:bg-gray-50';
             
             currentChannel = db[model].channels[0];
             buildChannels();
@@ -228,6 +270,7 @@
         function setChannel(ch) {
             currentChannel = ch;
             buildChannels();
+            buildForm();
             calculateScores();
         }
 
@@ -237,35 +280,38 @@
             
             const sections = db[currentModel].items;
             for (let sectionName in sections) {
-                let html = `
-                    <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
-                        <div class="${colors[sectionName]} px-4 py-2.5 text-white font-bold text-sm tracking-wide flex justify-between items-center">
-                            <span>${sectionName === 'CKO' ? 'CKO / CKT' : sectionName}</span>
-                            <span class="text-xs bg-black/20 px-2 py-0.5 rounded-sm" id="section-total-${sectionName}">0 pts</span>
-                        </div>
-                        <div class="divide-y divide-gray-100">
-                `;
-
+                let htmlContent = '';
+                
                 sections[sectionName].forEach(item => {
                     const val = item.scores[currentChannel] || 0;
-                    const isVisible = val > 0;
                     
-                    html += `
-                        <div class="p-3 flex items-center justify-between gap-4 ${isVisible ? '' : 'bg-gray-50/50 opacity-60'}">
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold text-gray-800">${item.name}</p>
-                                <p class="text-xs text-gray-400 font-medium">Peso neste canal: ${val} pts</p>
+                    if (val > 0) {
+                        htmlContent += `
+                            <div class="p-3 flex items-center justify-between gap-3">
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold text-gray-800">${item.name}</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">Peso: ${val} pts</p>
+                                </div>
+                                <div class="flex gap-1 shrink-0">
+                                    <button onclick="setResponse('${item.id}', true)" id="btn-sim-${item.id}" class="btn-sim px-3 py-1.5 border border-gray-300 rounded-md text-xs font-bold text-gray-500 transition-all ${responses[item.id] === true ? 'active' : ''}">SIM</button>
+                                    <button onclick="setResponse('${item.id}', false)" id="btn-nao-${item.id}" class="btn-nao px-3 py-1.5 border border-gray-300 rounded-md text-xs font-bold text-gray-500 transition-all ${responses[item.id] === false ? 'active' : ''}">NÃO</button>
+                                </div>
                             </div>
-                            <div class="flex gap-1.5 shrink-0">
-                                <button onclick="setResponse('${item.id}', true)" id="btn-sim-${item.id}" class="btn-sim px-3.5 py-1.5 border border-gray-300 rounded-lg text-xs font-bold text-gray-600 transition-all ${responses[item.id] === true ? 'active' : ''}">SIM</button>
-                                <button onclick="setResponse('${item.id}', false)" id="btn-nao-${item.id}" class="btn-nao px-3.5 py-1.5 border border-gray-300 rounded-lg text-xs font-bold text-gray-600 transition-all ${responses[item.id] === false ? 'active' : ''}">NÃO</button>
-                            </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 });
 
-                html += `</div></div>`;
-                container.innerHTML += html;
+                if (htmlContent !== '') {
+                    let htmlHeader = `
+                        <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
+                            <div class="${colors[sectionName]} px-4 py-2.5 text-white font-bold text-sm tracking-wide flex justify-between items-center">
+                                <span>${sectionName === 'CKO' ? 'CKO / CKT' : sectionName}</span>
+                                <span class="text-xs bg-black/20 px-2 py-0.5 rounded-sm" id="section-total-${sectionName}">0 pts</span>
+                            </div>
+                            <div class="divide-y divide-gray-100">
+                    `;
+                    container.innerHTML += htmlHeader + htmlContent + `</div></div>`;
+                }
             }
         }
 
@@ -313,18 +359,167 @@
             const grandTotalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
             
             document.getElementById('dash-total').innerText = `${grandTotalGot} / ${grandTotalMax}`;
+
+            // Lógica de Classificação da Loja (Perfeita, Boa, Regular, Ruim)
+            updateClassification(grandTotalGot);
+        }
+
+        function updateClassification(pontos) {
+            const badge = document.getElementById('status-badge');
+            const bar = document.getElementById('status-bar');
+            
+            let colorClass = '';
+            let textClass = 'text-white';
+            let barWidth = '0%';
+
+            if (pontos > 90) {
+                currentStatusText = 'PERFEITA';
+                colorClass = 'bg-green-500';
+                barWidth = '100%';
+            } else if (pontos > 65) {
+                currentStatusText = 'BOA';
+                colorClass = 'bg-blue-500';
+                barWidth = '75%';
+            } else if (pontos > 35) {
+                currentStatusText = 'REGULAR';
+                colorClass = 'bg-yellow-400';
+                textClass = 'text-yellow-900';
+                barWidth = '50%';
+            } else {
+                currentStatusText = 'RUIM';
+                colorClass = 'bg-red-500';
+                barWidth = pontos > 0 ? '25%' : '0%';
+                if(pontos === 0) currentStatusText = 'AGUARDANDO';
+            }
+
+            badge.className = `inline-block px-8 py-1.5 rounded-full font-black text-lg transition-colors ${colorClass} ${textClass}`;
+            badge.innerText = currentStatusText;
+            
+            bar.className = `h-1.5 rounded-full transition-all duration-500 ${colorClass}`;
+            bar.style.width = barWidth;
         }
 
         function clearForm() {
             if(confirm("Deseja mesmo zerar todo o questionário atual?")) {
                 responses = {};
+                document.getElementById('input-promotor').value = '';
+                document.getElementById('input-loja').value = '';
                 buildForm();
                 calculateScores();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
+        // Função para Gerar PDF Profissional
+        function downloadPDF() {
+            const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
+            const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
+            
+            const agora = new Date();
+            const dataStr = agora.toLocaleDateString('pt-BR');
+            const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const lojaLimpa = loja.replace(/[^a-zA-Z0-9]/g, '_');
+            const dataInversa = agora.toISOString().split('T')[0];
+            const nomeArquivo = `Auditoria_${lojaLimpa}_${dataInversa}.pdf`;
+
+            let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
+            const sections = db[currentModel].items;
+            
+            let htmlItemsSim = '';
+            let htmlItemsNao = '';
+
+            for (let sec in sections) {
+                sections[sec].forEach(item => {
+                    const weight = item.scores[currentChannel] || 0;
+                    if (weight > 0) {
+                        totals[sec].max += weight;
+                        const labelSec = sec === 'CKO' ? 'CKO/CKT' : sec;
+                        if (responses[item.id] === true) {
+                            totals[sec].got += weight;
+                            htmlItemsSim += `<li style="margin-bottom: 5px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 12px;">(${weight} pts)</span></li>`;
+                        } else if (responses[item.id] === false) {
+                            htmlItemsNao += `<li style="margin-bottom: 5px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 12px;">(${weight} pts)</span></li>`;
+                        }
+                    }
+                });
+            }
+            
+            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
+            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
+            
+            // Define a cor da tag no PDF
+            let colorHex = '#9ca3af'; // Aguardando
+            if (totalGot > 90) colorHex = '#22c55e'; // Verde
+            else if (totalGot > 65) colorHex = '#3b82f6'; // Azul
+            else if (totalGot > 35) colorHex = '#facc15'; // Amarelo
+            else if (totalGot > 0) colorHex = '#ef4444'; // Vermelho
+
+            // Estrutura Visual do PDF
+            const pdfContainer = document.createElement('div');
+            pdfContainer.innerHTML = `
+                <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333;">
+                    <h1 style="color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 24px;">Relatório de Loja</h1>
+                    <p style="text-align: center; color: #666; margin-top: 0; font-size: 14px;">Gerado via Simulador KPI</p>
+                    <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+                    
+                    <table style="width: 100%; margin-bottom: 20px; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Promotor:</strong> ${promotor}</td>
+                            <td style="padding: 5px 0; text-align: right;"><strong>Loja:</strong> ${loja}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Data:</strong> ${dataStr} às ${horaStr}</td>
+                            <td style="padding: 5px 0; text-align: right;"><strong>Canal:</strong> ${currentChannel} (${currentModel.toUpperCase()})</td>
+                        </tr>
+                    </table>
+
+                    <div style="background-color: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 30px; border: 1px solid #e2e8f0;">
+                        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #475569;">PONTUAÇÃO TOTAL</h2>
+                        <div style="font-size: 36px; font-weight: bold; margin-bottom: 15px; color: #1e293b;">${totalGot} <span style="font-size: 18px; color: #94a3b8;">/ ${totalMax} pts</span></div>
+                        <div style="display: inline-block; background-color: ${colorHex}; color: ${totalGot > 35 && totalGot <= 65 ? '#713f12' : '#fff'}; padding: 8px 24px; border-radius: 50px; font-weight: bold; letter-spacing: 1px; font-size: 16px;">
+                            ${currentStatusText}
+                        </div>
+                    </div>
+
+                    <h3 style="color: #16a34a; border-bottom: 2px solid #16a34a; padding-bottom: 5px;">✅ Itens Executados (SIM)</h3>
+                    <ul style="list-style-type: none; padding-left: 0; font-size: 13px;">
+                        ${htmlItemsSim || '<li style="color:#999;">Nenhum item marcado como SIM.</li>'}
+                    </ul>
+
+                    <h3 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px; margin-top: 30px;">❌ Itens Pendentes (NÃO)</h3>
+                    <ul style="list-style-type: none; padding-left: 0; font-size: 13px;">
+                        ${htmlItemsNao || '<li style="color:#999;">Nenhum item marcado como NÃO.</li>'}
+                    </ul>
+                </div>
+            `;
+
+            // Configuração e geração via html2pdf
+            const opt = {
+                margin:       [0, 0, 0, 0],
+                filename:     nomeArquivo,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Notifica o usuário que o download começou
+            const btn = document.querySelector('button[onclick="downloadPDF()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF...`;
+            
+            html2pdf().set(opt).from(pdfContainer).save().then(() => {
+                btn.innerHTML = originalText;
+            });
+        }
+
         function shareReport() {
+            const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
+            const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
+            const agora = new Date();
+            const dataStr = agora.toLocaleDateString('pt-BR');
+            const horaStr = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
             let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
             const sections = db[currentModel].items;
             
@@ -340,27 +535,47 @@
             
             const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
             const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
-            const aproveitamento = totalMax > 0 ? ((totalGot / totalMax) * 100).toFixed(1) : 0;
 
-            let text = `📊 *RESULTADO DA AUDITORIA*\n`;
-            text += `*Modelo:* ${currentModel.toUpperCase()}\n`;
-            text += `*Canal:* ${currentChannel}\n`;
+            // Definir o Emoji correspondente ao status
+            let statusEmoji = '⚪';
+            if (totalGot > 90) statusEmoji = '🟢';
+            else if (totalGot > 65) statusEmoji = '🔵';
+            else if (totalGot > 35) statusEmoji = '🟡';
+            else if (totalGot > 0) statusEmoji = '🔴';
+
+            let text = `📊 *AUDITORIA DE LOJA*\n`;
+            text += `👤 *Promotor:* ${promotor}\n`;
+            text += `🏪 *Loja:* ${loja}\n`;
+            text += `📅 *Data:* ${dataStr} às ${horaStr}\n`;
+            text += `🏢 *Modelo:* ${currentModel.toUpperCase()} | *Canal:* ${currentChannel}\n`;
             text += `----------------------------------\n`;
-            text += `🔸 *SOS:* ${totals.SOS.got} / ${totals.SOS.max}\n`;
-            text += `🔸 *CKO/CKT:* ${totals.CKO.got} / ${totals.CKO.max}\n`;
-            text += `🔸 *PE:* ${totals.PE.got} / ${totals.PE.max}\n`;
-            text += `🔸 *KBDs:* ${totals.KBDs.got} / ${totals.KBDs.max}\n`;
+            if(totals.SOS.max > 0) text += `🔸 *SOS:* ${totals.SOS.got}/${totals.SOS.max}\n`;
+            if(totals.CKO.max > 0) text += `🔸 *CKO/CKT:* ${totals.CKO.got}/${totals.CKO.max}\n`;
+            if(totals.PE.max > 0) text += `🔸 *PE:* ${totals.PE.got}/${totals.PE.max}\n`;
+            if(totals.KBDs.max > 0) text += `🔸 *KBDs:* ${totals.KBDs.got}/${totals.KBDs.max}\n`;
             text += `----------------------------------\n`;
-            text += `🏆 *PONTUAÇÃO TOTAL:* *${totalGot} / ${totalMax}*\n`;
-            text += `📈 *APROVEITAMENTO:* *${aproveitamento}%*`;
+            text += `🏆 *TOTAL:* *${totalGot}* / ${totalMax} pts\n`;
+            text += `${statusEmoji} *STATUS:* *${currentStatusText}*\n`;
+            text += `----------------------------------\n`;
+            text += `_Gerado via Simulador KPI_`;
 
             navigator.clipboard.writeText(text).then(() => {
                 alert("Relatório copiado para a Área de Transferência! Agora basta colar no WhatsApp.");
             }).catch(() => {
-                alert("Erro ao copiar automaticamente. Use os recursos nativos do dispositivo.");
+                alert("Erro ao copiar. O navegador pode estar bloqueando a ação.");
             });
         }
 
+        // Registro do Service Worker para o PWA (instalação no celular)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrado com sucesso!'))
+                    .catch(err => console.error('Erro ao registrar Service Worker:', err));
+            });
+        }
+
+        // Inicia o app
         changeModel('lego');
     </script>
 </body>
