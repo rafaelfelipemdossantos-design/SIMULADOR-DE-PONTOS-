@@ -5,131 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Pontuação</title>
 
+    <!-- Ícones e Configurações para virar App (PWA) -->
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Simulador KPI">
+    <meta name="apple-mobile-web-app-title" content="Simulador de Pontuação">
+    <meta name="theme-color" content="#0f172a">
     <link rel="manifest" href="manifest.json">
 
+    <!-- Tailwind CSS para um visual moderno e limpo -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        .active-tab { border-bottom-width: 4px; border-color: #1e40af; color: #1e40af; font-weight: bold; }
-        .btn-sim.active { background-color: #22c55e; color: white; border-color: #22c55e; }
-        .btn-nao.active { background-color: #ef4444; color: white; border-color: #ef4444; }
+        /* Melhorias de Renderização e Animações Premium */
+        body { 
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale; 
+        }
+        .active-tab { 
+            border-bottom-width: 4px; border-color: #1e40af; color: #1e40af; font-weight: bold; 
+        }
+        
+        /* Botões de Ação com Efeito Tátil Avançado */
+        .btn-sim, .btn-nao { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-sim:active, .btn-nao:active { transform: scale(0.92); }
+        
+        .btn-sim.active { 
+            background-color: #16a34a; color: white; border-color: #16a34a; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+            transform: scale(0.96);
+        }
+        .btn-nao.active { 
+            background-color: #dc2626; color: white; border-color: #dc2626; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+            transform: scale(0.96);
+        }
+        
+        /* Campos de Input Suaves */
+        input:focus + .fa-user, input:focus + .fa-shop { color: #2563eb; transition: color 0.3s; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen pb-12">
+<body class="bg-slate-50 font-sans min-h-screen pb-12 selection:bg-blue-200">
 
-    <header class="bg-blue-900 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
-                <i class="fa-solid fa-chart-line text-yellow-400"></i> Simulador KPI
+    <!-- Header com Gradiente Premium -->
+    <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-lg sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2 drop-shadow-sm">
+                <div class="bg-white/10 p-1.5 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-chart-line text-yellow-400 text-sm"></i>
+                </div>
+                Simulador de Pontuação
             </h1>
-            <span class="text-xs bg-blue-800 px-3 py-1 rounded-full border border-blue-700">V4.4</span>
+            <span class="text-xs bg-blue-500/20 px-3 py-1.5 rounded-full border border-blue-400/30 font-semibold tracking-wider text-blue-100 shadow-inner">
+                V4.7
+            </span>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 mt-4 space-y-5">
+    <main class="max-w-4xl mx-auto px-4 mt-5 space-y-5">
 
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nome do Promotor</label>
+        <!-- Informações do Promotor e Loja -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="group">
+                <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 ml-1">Nome do Promotor</label>
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 transition-colors">
                         <i class="fa-solid fa-user text-xs"></i>
                     </span>
-                    <input type="text" id="input-promotor" placeholder="Seu nome" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-gray-50 font-medium">
+                    <input type="text" id="input-promotor" placeholder="Seu nome completo" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-slate-50/50 hover:bg-slate-50 font-medium transition-all text-slate-700 placeholder-slate-400 shadow-sm">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nome da Loja</label>
+            <div class="group">
+                <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 ml-1">Nome da Loja</label>
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 transition-colors">
                         <i class="fa-solid fa-shop text-xs"></i>
                     </span>
-                    <input type="text" id="input-loja" placeholder="Ex: Supermercado Ferraz" class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-gray-50 font-medium">
+                    <input type="text" id="input-loja" placeholder="Ex: Supermercado Ferraz" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-slate-50/50 hover:bg-slate-50 font-medium transition-all text-slate-700 placeholder-slate-400 shadow-sm">
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-2 flex border border-gray-200 gap-2">
-            <button onclick="changeModel('lego')" id="btn-model-lego" class="flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-blue-950 bg-blue-50">
-                <i class="fa-solid fa-cubes mr-1 text-blue-600"></i> LEGO (Diretos)
+        <!-- Seleção do Modelo de Negócio -->
+        <div class="bg-white rounded-2xl shadow-sm p-1.5 flex border border-slate-200/60 gap-1.5">
+            <button onclick="changeModel('lego')" id="btn-model-lego" class="flex-1 py-3 text-center font-bold text-sm rounded-xl transition-all text-blue-950 bg-blue-50 border border-blue-200 shadow-sm transform hover:scale-[1.01]">
+                <i class="fa-solid fa-cubes mr-1.5 text-blue-600"></i> LEGO (Diretos)
             </button>
-            <button onclick="changeModel('storeplatform')" id="btn-model-store" class="flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-                <i class="fa-solid fa-shop mr-1 text-gray-400"></i> Storeplatform
+            <button onclick="changeModel('storeplatform')" id="btn-model-store" class="flex-1 py-3 text-center font-bold text-sm rounded-xl transition-all text-slate-500 hover:bg-slate-50 hover:text-slate-700 transform hover:scale-[1.01]">
+                <i class="fa-solid fa-shop mr-1.5 text-slate-400"></i> Storeplat. (Indiretos)
             </button>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-200">
-            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Canal da Loja</label>
+        <!-- Seleção de Canais Dinâmicos -->
+        <div class="bg-white rounded-2xl shadow-sm p-3 border border-slate-200/60">
+            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Canal de Execução</label>
             <div id="channel-container" class="grid grid-cols-5 gap-2">
-                </div>
+                <!-- Injetado via JS -->
+            </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-4">
+        <!-- Dashboard de Resultados Rápidos Avançado -->
+        <div class="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm space-y-4">
             
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
-                    <p class="text-[10px] font-bold text-amber-800 uppercase">SOS</p>
-                    <p class="text-lg font-black text-amber-950" id="dash-sos">0 / 0</p>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-100 rounded-xl p-2.5 text-center shadow-sm">
+                    <p class="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-0.5">SOS</p>
+                    <p class="text-xl font-black text-orange-950 drop-shadow-sm" id="dash-sos">0 / 0</p>
                 </div>
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-2 text-center">
-                    <p class="text-[10px] font-bold text-purple-800 uppercase">CKO / CKT</p>
-                    <p class="text-lg font-black text-purple-950" id="dash-cko">0 / 0</p>
+                <div class="bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-fuchsia-100 rounded-xl p-2.5 text-center shadow-sm">
+                    <p class="text-[10px] font-bold text-fuchsia-700 uppercase tracking-wider mb-0.5">CKO/CKT</p>
+                    <p class="text-xl font-black text-fuchsia-950 drop-shadow-sm" id="dash-cko">0 / 0</p>
                 </div>
-                <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-2 text-center">
-                    <p class="text-[10px] font-bold text-cyan-800 uppercase">PE</p>
-                    <p class="text-lg font-black text-cyan-950" id="dash-pe">0 / 0</p>
+                <div class="bg-gradient-to-br from-cyan-50 to-blue-50 border border-blue-100 rounded-xl p-2.5 text-center shadow-sm">
+                    <p class="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-0.5">PE</p>
+                    <p class="text-xl font-black text-blue-950 drop-shadow-sm" id="dash-pe">0 / 0</p>
                 </div>
-                <div class="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
-                    <p class="text-[10px] font-bold text-green-800 uppercase">KBDs</p>
-                    <p class="text-lg font-black text-green-950" id="dash-kbds">0 / 0</p>
+                <div class="bg-gradient-to-br from-emerald-50 to-green-50 border border-green-100 rounded-xl p-2.5 text-center shadow-sm">
+                    <p class="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-0.5">KBDs</p>
+                    <p class="text-xl font-black text-green-950 drop-shadow-sm" id="dash-kbds">0 / 0</p>
                 </div>
-                <div class="bg-blue-900 rounded-lg p-2 text-center col-span-2 sm:col-span-1 text-white flex flex-col justify-center">
-                    <p class="text-[10px] font-bold text-blue-200 uppercase">Total Loja</p>
-                    <p class="text-xl font-black text-yellow-400" id="dash-total">0 / 0</p>
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-2.5 text-center col-span-2 sm:col-span-1 text-white flex flex-col justify-center shadow-inner relative overflow-hidden">
+                    <div class="absolute inset-0 bg-white/5 opacity-50 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 to-transparent"></div>
+                    <p class="text-[10px] font-bold text-slate-300 uppercase tracking-wider relative z-10">Total Loja</p>
+                    <p class="text-2xl font-black text-yellow-400 drop-shadow-md relative z-10" id="dash-total">0 / 0</p>
                 </div>
             </div>
 
-            <div class="pt-2 border-t border-gray-100 text-center">
-                <p class="text-[11px] font-bold uppercase text-gray-400 mb-1">Status da Loja</p>
-                <div id="status-badge" class="inline-block px-8 py-1.5 rounded-full text-white font-black text-lg bg-gray-300 transition-colors">
+            <!-- Barra de Classificação da Loja Premium -->
+            <div class="pt-3 border-t border-slate-100 text-center">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Classificação Final</p>
+                <div id="status-badge" class="inline-block px-10 py-1.5 rounded-full text-white font-black text-lg bg-slate-200 transition-colors shadow-sm">
                     AGUARDANDO
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3 overflow-hidden">
-                    <div id="status-bar" class="bg-gray-300 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div class="w-full bg-slate-100 rounded-full h-2 mt-4 overflow-hidden shadow-inner">
+                    <div id="status-bar" class="bg-slate-300 h-2 rounded-full transition-all duration-700 ease-out relative" style="width: 0%">
+                        <div class="absolute inset-0 bg-white/20 w-full h-full"></div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
+        <!-- Formulário de Auditoria -->
         <div id="checklist-form" class="space-y-4">
-            </div>
+            <!-- Injetado via JS -->
+        </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
-            <button onclick="clearForm()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 w-full text-sm">
-                <i class="fa-solid fa-trash-can"></i> Limpar Tudo
+        <!-- Ações de Envio e Reset Avançadas -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5 pb-8">
+            <button onclick="clearForm()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2.5 w-full text-sm hover:shadow">
+                <i class="fa-solid fa-trash-can text-slate-400"></i> Limpar Tudo
             </button>
-            <button onclick="downloadPDF()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 w-full text-sm">
-                <i class="fa-solid fa-file-pdf"></i> Baixar PDF
+            <button onclick="downloadHTML()" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 w-full text-sm transform hover:-translate-y-0.5">
+                <i class="fa-solid fa-file-code"></i> Baixar Relatório
             </button>
-            <button onclick="shareReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 w-full text-sm">
+            <button onclick="shareReport()" class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 w-full text-sm transform hover:-translate-y-0.5">
                 <i class="fa-brands fa-whatsapp text-lg"></i> Enviar WhatsApp
             </button>
         </div>
 
     </main>
 
+    <!-- Banco de Dados Integrado e Lógica -->
     <script>
         let currentModel = 'lego';
         let currentChannel = 'C&C';
         let responses = {};
         let currentStatusText = 'AGUARDANDO';
+
+        // Nomenclaturas padronizadas para exibição
+        const modelNames = {
+            'lego': 'LEGO (Diretos)',
+            'storeplatform': 'Storeplat. (Indiretos)'
+        };
 
         const db = {
             lego: {
@@ -245,12 +294,17 @@
             }
         };
 
-        const colors = { SOS: 'bg-amber-600', CKO: 'bg-purple-600', PE: 'bg-cyan-600', KBDs: 'bg-green-600' };
+        const colors = { SOS: 'bg-amber-500', CKO: 'bg-fuchsia-600', PE: 'bg-blue-600', KBDs: 'bg-emerald-500' };
 
         function changeModel(model) {
             currentModel = model;
-            document.getElementById('btn-model-lego').className = model === 'lego' ? 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-blue-950 bg-blue-50 border border-blue-200' : 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-gray-500 hover:bg-gray-50';
-            document.getElementById('btn-model-store').className = model === 'storeplatform' ? 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-blue-950 bg-blue-50 border border-blue-200' : 'flex-1 py-2.5 text-center font-bold text-sm rounded-lg transition-all text-gray-500 hover:bg-gray-50';
+            
+            // Botões do Modelo - Aplicação de estilos ativos premium
+            const activeClass = 'flex-1 py-3 text-center font-bold text-sm rounded-xl transition-all text-blue-900 bg-blue-50 border border-blue-200 shadow-sm transform scale-100 ring-1 ring-blue-500/20';
+            const inactiveClass = 'flex-1 py-3 text-center font-bold text-sm rounded-xl transition-all text-slate-400 bg-white border border-transparent hover:bg-slate-50 hover:text-slate-600 transform hover:scale-[1.01]';
+            
+            document.getElementById('btn-model-lego').className = model === 'lego' ? activeClass : inactiveClass;
+            document.getElementById('btn-model-store').className = model === 'storeplatform' ? activeClass : inactiveClass;
             
             currentChannel = db[model].channels[0];
             buildChannels();
@@ -262,8 +316,10 @@
             const container = document.getElementById('channel-container');
             container.innerHTML = '';
             db[currentModel].channels.forEach(ch => {
-                const active = ch === currentChannel ? 'bg-blue-900 text-white shadow-xs' : 'bg-gray-100 hover:bg-gray-200 text-gray-700';
-                container.innerHTML += `<button onclick="setChannel('${ch}')" class="py-2 text-center text-xs font-bold rounded-md transition-all ${active}">${ch}</button>`;
+                const active = ch === currentChannel 
+                    ? 'bg-slate-800 text-white shadow-md ring-2 ring-slate-800/50 transform scale-100' 
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900';
+                container.innerHTML += `<button onclick="setChannel('${ch}')" class="py-2.5 text-center text-xs font-bold rounded-xl transition-all duration-200 ${active}">${ch}</button>`;
             });
         }
 
@@ -287,14 +343,14 @@
                     
                     if (val > 0) {
                         htmlContent += `
-                            <div class="p-3 flex items-center justify-between gap-3">
+                            <div class="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors">
                                 <div class="flex-1">
-                                    <p class="text-sm font-semibold text-gray-800">${item.name}</p>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase">Peso: ${val} pts</p>
+                                    <p class="text-[14px] font-semibold text-slate-800 leading-snug">${item.name}</p>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-wider">Peso: ${val} pts</p>
                                 </div>
-                                <div class="flex gap-1 shrink-0">
-                                    <button onclick="setResponse('${item.id}', true)" id="btn-sim-${item.id}" class="btn-sim px-3 py-1.5 border border-gray-300 rounded-md text-xs font-bold text-gray-500 transition-all ${responses[item.id] === true ? 'active' : ''}">SIM</button>
-                                    <button onclick="setResponse('${item.id}', false)" id="btn-nao-${item.id}" class="btn-nao px-3 py-1.5 border border-gray-300 rounded-md text-xs font-bold text-gray-500 transition-all ${responses[item.id] === false ? 'active' : ''}">NÃO</button>
+                                <div class="flex gap-2 shrink-0">
+                                    <button onclick="setResponse('${item.id}', true)" id="btn-sim-${item.id}" class="btn-sim w-14 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-400 bg-white hover:border-green-400 hover:text-green-600 ${responses[item.id] === true ? 'active' : ''}">SIM</button>
+                                    <button onclick="setResponse('${item.id}', false)" id="btn-nao-${item.id}" class="btn-nao w-14 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-400 bg-white hover:border-red-400 hover:text-red-600 ${responses[item.id] === false ? 'active' : ''}">NÃO</button>
                                 </div>
                             </div>
                         `;
@@ -303,12 +359,12 @@
 
                 if (htmlContent !== '') {
                     let htmlHeader = `
-                        <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
-                            <div class="${colors[sectionName]} px-4 py-2.5 text-white font-bold text-sm tracking-wide flex justify-between items-center">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden mb-4">
+                            <div class="${colors[sectionName]} px-5 py-3 text-white font-bold text-sm tracking-widest flex justify-between items-center shadow-sm">
                                 <span>${sectionName === 'CKO' ? 'CKO / CKT' : sectionName}</span>
-                                <span class="text-xs bg-black/20 px-2 py-0.5 rounded-sm" id="section-total-${sectionName}">0 pts</span>
+                                <span class="text-xs bg-white/20 px-2.5 py-1 rounded-md shadow-inner backdrop-blur-sm" id="section-total-${sectionName}">0 pts</span>
                             </div>
-                            <div class="divide-y divide-gray-100">
+                            <div class="divide-y divide-slate-100">
                     `;
                     container.innerHTML += htmlHeader + htmlContent + `</div></div>`;
                 }
@@ -373,28 +429,32 @@
 
             if (pontos > 90) {
                 currentStatusText = 'PERFEITA';
-                colorClass = 'bg-green-500';
+                colorClass = 'bg-gradient-to-r from-green-500 to-green-400';
                 barWidth = '100%';
             } else if (pontos > 65) {
                 currentStatusText = 'BOA';
-                colorClass = 'bg-blue-500';
+                colorClass = 'bg-gradient-to-r from-blue-600 to-blue-400';
                 barWidth = '75%';
             } else if (pontos > 35) {
                 currentStatusText = 'REGULAR';
-                colorClass = 'bg-yellow-400';
-                textClass = 'text-yellow-900';
+                colorClass = 'bg-gradient-to-r from-yellow-500 to-amber-400';
+                textClass = 'text-amber-950';
                 barWidth = '50%';
             } else {
                 currentStatusText = 'RUIM';
-                colorClass = 'bg-red-500';
+                colorClass = 'bg-gradient-to-r from-red-600 to-red-500';
                 barWidth = pontos > 0 ? '25%' : '0%';
-                if(pontos === 0) currentStatusText = 'AGUARDANDO';
+                if(pontos === 0) {
+                    currentStatusText = 'AGUARDANDO';
+                    colorClass = 'bg-slate-300';
+                    textClass = 'text-slate-600';
+                }
             }
 
-            badge.className = `inline-block px-8 py-1.5 rounded-full font-black text-lg transition-colors ${colorClass} ${textClass}`;
+            badge.className = `inline-block px-10 py-1.5 rounded-full font-black text-sm tracking-widest shadow-sm transition-all duration-300 ${colorClass} ${textClass}`;
             badge.innerText = currentStatusText;
             
-            bar.className = `h-1.5 rounded-full transition-all duration-500 ${colorClass}`;
+            bar.className = `h-2 rounded-full transition-all duration-700 ease-out relative overflow-hidden ${colorClass}`;
             bar.style.width = barWidth;
         }
 
@@ -410,9 +470,9 @@
         }
 
         // ==========================================
-        // GERAÇÃO DO PDF - REESCRITA PARA MOBILE
+        // GERAÇÃO DO ARQUIVO HTML PREMIUM
         // ==========================================
-        function downloadPDF() {
+        function downloadHTML() {
             const promotor = document.getElementById('input-promotor').value.trim() || 'Não Informado';
             const loja = document.getElementById('input-loja').value.trim() || 'Não Informado';
             const agora = new Date();
@@ -421,13 +481,13 @@
             
             const lojaLimpa = loja.replace(/[^a-zA-Z0-9]/g, '_');
             const dataInversa = agora.toISOString().split('T')[0];
-            const nomeArquivo = `Auditoria_${lojaLimpa}_${dataInversa}.pdf`;
+            const nomeArquivo = `Auditoria_${lojaLimpa}_${dataInversa}.html`;
 
             let totals = { SOS: { got: 0, max: 0 }, CKO: { got: 0, max: 0 }, PE: { got: 0, max: 0 }, KBDs: { got: 0, max: 0 } };
             const sections = db[currentModel].items;
             
-            let htmlItemsSim = '';
-            let htmlItemsNao = '';
+            let listSim = '';
+            let listNao = '';
 
             for (let sec in sections) {
                 sections[sec].forEach(item => {
@@ -437,9 +497,9 @@
                         const labelSec = sec === 'CKO' ? 'CKO/CKT' : sec;
                         if (responses[item.id] === true) {
                             totals[sec].got += weight;
-                            htmlItemsSim += `<li style="margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 11px;">(${weight} pts)</span></li>`;
+                            listSim += `<li><span class="cat">[${labelSec}]</span> <span class="name">${item.name}</span> <span class="pts pts-sim">+${weight} pts</span></li>`;
                         } else if (responses[item.id] === false) {
-                            htmlItemsNao += `<li style="margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px;"><strong>[${labelSec}]</strong> ${item.name} <span style="color: #666; font-size: 11px;">(${weight} pts)</span></li>`;
+                            listNao += `<li><span class="cat">[${labelSec}]</span> <span class="name">${item.name}</span> <span class="pts pts-nao">0 pts</span></li>`;
                         }
                     }
                 });
@@ -448,80 +508,102 @@
             const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
             const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
             
-            let colorHex = '#9ca3af'; 
-            if (totalGot > 90) colorHex = '#22c55e'; 
-            else if (totalGot > 65) colorHex = '#3b82f6'; 
-            else if (totalGot > 35) colorHex = '#facc15'; 
-            else if (totalGot > 0) colorHex = '#ef4444'; 
+            let bgGradient = 'linear-gradient(135deg, #9ca3af, #cbd5e1)'; 
+            let textColor = '#ffffff';
+            if (totalGot > 90) { bgGradient = 'linear-gradient(135deg, #16a34a, #4ade80)'; }
+            else if (totalGot > 65) { bgGradient = 'linear-gradient(135deg, #2563eb, #60a5fa)'; }
+            else if (totalGot > 35) { bgGradient = 'linear-gradient(135deg, #eab308, #fde047)'; textColor = '#713f12'; }
+            else if (totalGot > 0) { bgGradient = 'linear-gradient(135deg, #dc2626, #f87171)'; }
 
-            // Construção do Container Invisível mas Otimizado para não bugar o WebView do Android
-            const pdfContainer = document.createElement('div');
-            pdfContainer.style.position = 'absolute';
-            pdfContainer.style.left = '-9999px';
-            pdfContainer.style.top = '0';
-            pdfContainer.style.width = '800px'; 
-            pdfContainer.style.backgroundColor = '#ffffff'; 
-            
-            pdfContainer.innerHTML = `
-                <div style="padding: 40px; font-family: Helvetica, Arial, sans-serif; color: #333; background-color: #fff; width: 800px; box-sizing: border-box;">
-                    <h1 style="color: #1e3a8a; text-align: center; margin-bottom: 5px; font-size: 26px;">Relatório de Auditoria de Loja</h1>
-                    <p style="text-align: center; color: #666; margin-top: 0; font-size: 14px;">Simulador de Performance</p>
-                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                    
-                    <table style="width: 100%; margin-bottom: 25px; font-size: 15px;">
-                        <tr>
-                            <td style="padding: 5px 0;"><strong>Promotor:</strong> ${promotor}</td>
-                            <td style="padding: 5px 0; text-align: right;"><strong>Loja:</strong> ${loja}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px 0;"><strong>Data:</strong> ${dataStr} às ${horaStr}</td>
-                            <td style="padding: 5px 0; text-align: right;"><strong>Canal:</strong> ${currentChannel} (${currentModel.toUpperCase()})</td>
-                        </tr>
-                    </table>
-
-                    <div style="background-color: #f8fafc; padding: 25px; border-radius: 8px; text-align: center; margin-bottom: 30px; border: 1px solid #cbd5e1;">
-                        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #475569; letter-spacing: 1px;">PONTUAÇÃO TOTAL ATINGIDA</h2>
-                        <div style="font-size: 42px; font-weight: bold; margin-bottom: 15px; color: #0f172a;">${totalGot} <span style="font-size: 20px; color: #94a3b8;">/ ${totalMax} pts</span></div>
-                        <div style="display: inline-block; background-color: ${colorHex}; color: ${totalGot > 35 && totalGot <= 65 ? '#713f12' : '#ffffff'}; padding: 8px 30px; border-radius: 50px; font-weight: bold; letter-spacing: 1px; font-size: 16px;">
-                            STATUS: ${currentStatusText}
-                        </div>
+            const htmlString = `
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Relatório de Auditoria - ${loja}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #334155; margin: 0; padding: 20px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+                    .container { max-width: 800px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); border: 1px solid #f1f5f9; }
+                    .header { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px; }
+                    .header h1 { color: #0f172a; margin: 0 0 8px 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+                    .header p { color: #64748b; margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 35px; background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #f1f5f9; }
+                    .info-item { font-size: 15px; color: #475569; }
+                    .info-item strong { color: #0f172a; display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; color: #94a3b8; }
+                    .score-box { border-radius: 16px; padding: 35px; text-align: center; margin-bottom: 40px; position: relative; overflow: hidden; background: #0f172a; color: white; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+                    .score-box h2 { margin: 0 0 15px 0; font-size: 12px; color: #94a3b8; letter-spacing: 2px; }
+                    .score-value { font-size: 64px; font-weight: 900; line-height: 1; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+                    .score-value span { font-size: 28px; color: #64748b; font-weight: 600; }
+                    .badge { display: inline-block; background: ${bgGradient}; color: ${textColor}; padding: 10px 35px; border-radius: 9999px; font-weight: 800; font-size: 15px; letter-spacing: 1.5px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+                    .list-section { margin-bottom: 35px; }
+                    .list-title { font-size: 16px; font-weight: 800; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+                    .title-sim { color: #16a34a; border-color: #bbf7d0; }
+                    .title-nao { color: #dc2626; border-color: #fecaca; }
+                    ul.items { list-style: none; padding: 0; margin: 0; }
+                    ul.items li { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; transition: background 0.2s; border-radius: 8px; }
+                    ul.items li:hover { background: #f8fafc; }
+                    .cat { font-weight: 700; width: 100px; flex-shrink: 0; color: #64748b; font-size: 12px; letter-spacing: 0.5px; }
+                    .name { flex-grow: 1; font-size: 15px; font-weight: 500; color: #1e293b; }
+                    .pts { font-weight: 800; font-size: 14px; background: white; padding: 4px 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+                    .pts-sim { color: #16a34a; border: 1px solid #bbf7d0; }
+                    .pts-nao { color: #94a3b8; border: 1px solid #e2e8f0; }
+                    .empty { color: #94a3b8; font-style: italic; font-size: 15px; padding: 20px !important; justify-content: center; background: #f8fafc; border: 1px dashed #cbd5e1 !important; }
+                    @media (max-width: 600px) {
+                        .container { padding: 20px; }
+                        .info-grid { grid-template-columns: 1fr; gap: 15px; }
+                        ul.items li { flex-direction: column; align-items: flex-start; gap: 8px; }
+                        .cat { width: auto; }
+                        .pts { align-self: flex-start; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <p>Simulador de Performance</p>
+                        <h1>Relatório Final de Execução</h1>
                     </div>
 
-                    <h3 style="color: #16a34a; border-bottom: 2px solid #16a34a; padding-bottom: 5px; font-size: 16px;">✅ Itens Executados (SIM)</h3>
-                    <ul style="list-style-type: none; padding-left: 0; font-size: 14px; margin-bottom: 30px;">
-                        ${htmlItemsSim || '<li style="color:#94a3b8; font-style: italic;">Nenhum item marcado como SIM.</li>'}
-                    </ul>
+                    <div class="info-grid">
+                        <div class="info-item"><strong>Promotor de Vendas</strong> ${promotor}</div>
+                        <div class="info-item"><strong>Data da Auditoria</strong> ${dataStr} às ${horaStr}</div>
+                        <div class="info-item"><strong>Ponto de Venda (PDV)</strong> ${loja}</div>
+                        <div class="info-item"><strong>Modelo e Canal</strong> ${modelNames[currentModel]} — ${currentChannel}</div>
+                    </div>
 
-                    <h3 style="color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px; font-size: 16px;">❌ Itens Pendentes (NÃO)</h3>
-                    <ul style="list-style-type: none; padding-left: 0; font-size: 14px;">
-                        ${htmlItemsNao || '<li style="color:#94a3b8; font-style: italic;">Nenhum item marcado como NÃO.</li>'}
-                    </ul>
+                    <div class="score-box">
+                        <h2>SCORE ATINGIDO</h2>
+                        <div class="score-value">${totalGot} <span>/ ${totalMax}</span></div>
+                        <div class="badge">${currentStatusText}</div>
+                    </div>
+
+                    <div class="list-section">
+                        <div class="list-title title-sim">✅ Itens Executados</div>
+                        <ul class="items">
+                            ${listSim || '<li class="empty">Nenhum item marcado como SIM.</li>'}
+                        </ul>
+                    </div>
+
+                    <div class="list-section">
+                        <div class="list-title title-nao">❌ Itens Pendentes</div>
+                        <ul class="items">
+                            ${listNao || '<li class="empty">Nenhum item marcado como NÃO.</li>'}
+                        </ul>
+                    </div>
                 </div>
+            </body>
+            </html>
             `;
 
-            document.body.appendChild(pdfContainer);
-
-            // Opções forçando a resolução de leitura para o tamanho de 800px (salva a renderização no Android)
-            const opt = {
-                margin:       10, // Margem de 10mm
-                filename:     nomeArquivo,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            const btn = document.querySelector('button[onclick="downloadPDF()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Gerando...`;
+            const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = nomeArquivo;
             
-            html2pdf().set(opt).from(pdfContainer).save().then(() => {
-                btn.innerHTML = originalText;
-                document.body.removeChild(pdfContainer); 
-            }).catch(err => {
-                btn.innerHTML = originalText;
-                alert("Falha na renderização visual do Android. Tente usar o envio direto pelo WhatsApp.");
-                document.body.removeChild(pdfContainer);
-            });
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // ==========================================
@@ -560,7 +642,7 @@
             text += `👤 *Promotor:* ${promotor}\n`;
             text += `🏪 *Loja:* ${loja}\n`;
             text += `📅 *Data:* ${dataStr} às ${horaStr}\n`;
-            text += `🏢 *Modelo:* ${currentModel.toUpperCase()} | *Canal:* ${currentChannel}\n`;
+            text += `🏢 *Modelo:* ${modelNames[currentModel]} | *Canal:* ${currentChannel}\n`;
             text += `----------------------------------\n`;
             if(totals.SOS.max > 0) text += `🔸 *SOS:* ${totals.SOS.got}/${totals.SOS.max}\n`;
             if(totals.CKO.max > 0) text += `🔸 *CKO/CKT:* ${totals.CKO.got}/${totals.CKO.max}\n`;
@@ -570,19 +652,17 @@
             text += `🏆 *TOTAL:* *${totalGot}* / ${totalMax} pts\n`;
             text += `${statusEmoji} *STATUS:* *${currentStatusText}*\n`;
             text += `----------------------------------\n`;
-            text += `_Gerado via Simulador KPI_`;
+            text += `_Gerado via Simulador de Pontuação_`;
 
-            // Abre a URL mágica do WhatsApp que já direciona direto pro app com o texto pronto!
+            // Abre o link direto do WhatsApp
             const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(text)}`;
             window.open(urlWhatsApp, '_blank');
         }
 
-        // Registro do Service Worker para o PWA (instalação no celular)
+        // Service Worker (PWA)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registrado com sucesso!'))
-                    .catch(err => console.error('Erro ao registrar Service Worker:', err));
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
             });
         }
 
