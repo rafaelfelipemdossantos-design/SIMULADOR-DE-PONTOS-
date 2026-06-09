@@ -19,6 +19,9 @@
 
     <style>
         /* Melhorias de Renderização e Animações Premium */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        
         body { 
             -webkit-font-smoothing: antialiased; 
             -moz-osx-font-smoothing: grayscale; 
@@ -58,7 +61,7 @@
                 Simulador de Pontuação
             </h1>
             <span class="text-xs bg-blue-500/20 px-3 py-1.5 rounded-full border border-blue-400/30 font-semibold tracking-wider text-blue-100 shadow-inner">
-                V4.7
+                V4.8
             </span>
         </div>
     </header>
@@ -335,6 +338,8 @@
             container.innerHTML = '';
             
             const sections = db[currentModel].items;
+            let isFirstValidSection = true; // Controle para iniciar apenas a primeira categoria aberta
+
             for (let sectionName in sections) {
                 let htmlContent = '';
                 
@@ -358,15 +363,22 @@
                 });
 
                 if (htmlContent !== '') {
+                    // Substituição para a tag <details> que cria o efeito nativo de expansão
                     let htmlHeader = `
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden mb-4">
-                            <div class="${colors[sectionName]} px-5 py-3 text-white font-bold text-sm tracking-widest flex justify-between items-center shadow-sm">
-                                <span>${sectionName === 'CKO' ? 'CKO / CKT' : sectionName}</span>
-                                <span class="text-xs bg-white/20 px-2.5 py-1 rounded-md shadow-inner backdrop-blur-sm" id="section-total-${sectionName}">0 pts</span>
-                            </div>
-                            <div class="divide-y divide-slate-100">
+                        <details class="group bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden mb-4" ${isFirstValidSection ? 'open' : ''}>
+                            <summary class="cursor-pointer ${colors[sectionName]} px-5 py-4 text-white font-bold text-sm tracking-widest flex justify-between items-center shadow-sm hover:brightness-110 transition-all select-none">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-6 h-6 flex items-center justify-center bg-white/20 rounded-full shadow-inner">
+                                        <i class="fa-solid fa-chevron-right text-[11px] transition-transform duration-300 group-open:rotate-90"></i>
+                                    </div>
+                                    <span>${sectionName === 'CKO' ? 'CKO / CKT' : sectionName}</span>
+                                </div>
+                                <span class="text-xs bg-white/20 px-3 py-1.5 rounded-lg shadow-inner backdrop-blur-sm" id="section-total-${sectionName}">0 pts</span>
+                            </summary>
+                            <div class="divide-y divide-slate-100 bg-white">
                     `;
-                    container.innerHTML += htmlHeader + htmlContent + `</div></div>`;
+                    container.innerHTML += htmlHeader + htmlContent + `</div></details>`;
+                    isFirstValidSection = false; // As próximas categorias entrarão fechadas por padrão
                 }
             }
         }
