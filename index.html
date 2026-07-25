@@ -2,16 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Simulador de Pontuação">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="format-detection" content="telephone=no">
     <title>Simulador de Pontuação</title>
 
-    <!-- Ícones e Configurações para virar App (PWA) -->
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Simulador de Pontuação">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="manifest" href="manifest.json">
+    <!-- Manifest inline para PWA -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiU2ltdWxhZG9yIGRlIFBvbnR1w6fDo28iLCJzaG9ydF9uYW1lIjoiU2ltdWxhZG9yIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjE3MmEiLCJ0aGVtZV9jb2xvciI6IiMwZjE3MmEifQ==">
 
     <!-- Tailwind CSS para um visual moderno e limpo -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -22,16 +23,29 @@
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         
+        /* Suporte a telas com notch (iPhone X+) */
+        @supports (padding-top: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+        
         body { 
             -webkit-font-smoothing: antialiased; 
             -moz-osx-font-smoothing: grayscale; 
+            touch-action: manipulation;
         }
+        
         .active-tab { 
             border-bottom-width: 4px; border-color: #1e40af; color: #1e40af; font-weight: bold; 
         }
         
-        /* Botões de Ação com Efeito Tátil Avançado */
-        .btn-sim, .btn-nao { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Botões de Ação com Efeito Tátil Avançado - Otimizado para Mobile */
+        .btn-sim, .btn-nao { 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            -webkit-tap-highlight-color: transparent;
+        }
         .btn-sim:active, .btn-nao:active { transform: scale(0.92); }
         
         .btn-sim.active { 
@@ -45,14 +59,17 @@
             transform: scale(0.96);
         }
         
+        /* Todos os botões sem highlight azul no iOS */
+        button { -webkit-tap-highlight-color: transparent; }
+        
         /* Campos de Input Suaves */
         input:focus + .fa-user, input:focus + .fa-shop { color: #2563eb; transition: color 0.3s; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen pb-12 selection:bg-blue-200">
+<body class="bg-slate-50 font-sans min-h-screen selection:bg-blue-200" style="padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px));">
 
     <!-- Header com Gradiente Premium -->
-    <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-lg sticky top-0 z-50 border-b border-slate-800">
+    <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-lg sticky top-0 z-50 border-b border-slate-800" style="padding-top: env(safe-area-inset-top);">
         <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2 drop-shadow-sm">
                 <div class="bg-white/10 p-1.5 rounded-lg flex items-center justify-center">
@@ -76,7 +93,7 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 transition-colors">
                         <i class="fa-solid fa-user text-xs"></i>
                     </span>
-                    <input type="text" id="input-promotor" placeholder="Seu nome completo" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-slate-50/50 hover:bg-slate-50 font-medium transition-all text-slate-700 placeholder-slate-400 shadow-sm">
+                    <input type="text" id="input-promotor" placeholder="Seu nome completo" autocomplete="name" autocapitalize="words" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-slate-50/50 hover:bg-slate-50 font-medium transition-all text-slate-700 placeholder-slate-400 shadow-sm">
                 </div>
             </div>
             <div class="group">
@@ -85,7 +102,7 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 transition-colors">
                         <i class="fa-solid fa-shop text-xs"></i>
                     </span>
-                    <input type="text" id="input-loja" placeholder="Ex: Supermercado Ferraz" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-slate-50/50 hover:bg-slate-50 font-medium transition-all text-slate-700 placeholder-slate-400 shadow-sm">
+                    <input type="text" id="input-loja" placeholder="Ex: Supermercado Ferraz" autocomplete="off" autocapitalize="words" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 bg-slate-50/50 hover:bg-slate-50 font-medium transition-all text-slate-700 placeholder-slate-400 shadow-sm">
                 </div>
             </div>
         </div>
@@ -103,7 +120,7 @@
         <!-- Seleção de Canais Dinâmicos -->
         <div class="bg-white rounded-2xl shadow-sm p-3 border border-slate-200/60">
             <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Canal de Execução</label>
-            <div id="channel-container" class="grid grid-cols-5 gap-2">
+            <div id="channel-container" class="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 <!-- Injetado via JS -->
             </div>
         </div>
@@ -188,23 +205,24 @@
                 channels: ['C&C', 'DPP', 'HSM', 'LASA', 'CLUB'],
                 items: {
                     SOS: [
-                        { id: 'sos_gillette', name: 'Gillette', scores: {'C&C':4, 'DPP':3.5, 'HSM':4.5, 'LASA':4.5, 'CLUB':6} },
-                        { id: 'sos_downy', name: 'Downy', scores: {'C&C':9, 'DPP':0, 'HSM':9, 'LASA':9, 'CLUB':11} },
-                        { id: 'sos_pampers', name: 'Pampers', scores: {'C&C':3.5, 'DPP':9, 'HSM':5, 'LASA':5, 'CLUB':8.5} },
-                        { id: 'sos_venus', name: 'Venus', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':0} },
-                        { id: 'sos_escovas', name: 'Escovas', scores: {'C&C':3, 'DPP':2.5, 'HSM':3.5, 'LASA':3.5, 'CLUB':4.5} },
-                        { id: 'sos_cabelos', name: 'Cabelos', scores: {'C&C':3, 'DPP':3.5, 'HSM':4, 'LASA':4, 'CLUB':4} },
-                        { id: 'sos_always', name: 'Always', scores: {'C&C':2.5, 'DPP':3, 'HSM':2, 'LASA':2, 'CLUB':3.5} },
-                        { id: 'sos_cremes', name: 'Cremes', scores: {'C&C':3, 'DPP':2.5, 'HSM':3, 'LASA':3, 'CLUB':4} },
-                        { id: 'sos_oldspice', name: 'Old Spice', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
-                        { id: 'sos_secret', name: 'Secret', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} }
+                        { id: 'sos_gillette', name: 'GILLETTE', scores: {'C&C':4, 'DPP':3.5, 'HSM':4.5, 'LASA':4.5, 'CLUB':6} },
+                        { id: 'sos_downy', name: 'DOWNY', scores: {'C&C':9, 'DPP':0, 'HSM':9, 'LASA':9, 'CLUB':11} },
+                        { id: 'sos_pampers', name: 'PAMPERS', scores: {'C&C':3.5, 'DPP':9, 'HSM':5, 'LASA':5, 'CLUB':8.5} },
+                        { id: 'sos_venus', name: 'VENUS', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':0} },
+                        { id: 'sos_escovas', name: 'ORAL-B ESCOVAS', scores: {'C&C':3, 'DPP':2.5, 'HSM':3.5, 'LASA':3.5, 'CLUB':4.5} },
+                        { id: 'sos_cabelos', name: 'CABELOS', scores: {'C&C':3, 'DPP':3.5, 'HSM':4, 'LASA':4, 'CLUB':4} },
+                        { id: 'sos_always', name: 'ALWAYS', scores: {'C&C':2.5, 'DPP':3, 'HSM':2, 'LASA':2, 'CLUB':3.5} },
+                        { id: 'sos_cremes', name: 'ORAL-B CREME DENTAL', scores: {'C&C':3, 'DPP':2.5, 'HSM':3, 'LASA':3, 'CLUB':4} },
+                        { id: 'sos_oldspice', name: 'DES. OLD SPICE/GILLETTE', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
+                        { id: 'sos_secret', name: 'DES. SECRET', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
+                        { id: 'sos_tampax', name: 'TAMPAX', scores: {'C&C':0.10, 'DPP':0.1, 'HSM':0.10, 'LASA':0.10, 'CLUB':0} }
                     ],
                     CKO: [
-                        { id: 'cko_gillette', name: 'Gillette', scores: {'C&C':2.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':6.5} },
-                        { id: 'cko_presto3', name: 'Gillette (Presto 3)', scores: {'C&C':2, 'DPP':2.5, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
-                        { id: 'cko_venus', name: 'Venus', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':0} },
-                        { id: 'cko_escovas', name: 'Escovas', scores: {'C&C':2, 'DPP':1, 'HSM':2, 'LASA':2, 'CLUB':1} },
-                        { id: 'cko_cabelos', name: 'Cabelos', scores: {'C&C':1.5, 'DPP':6.5, 'HSM':1, 'LASA':1, 'CLUB':0} }
+                        { id: 'cko_gillette', name: 'GILLETTE', scores: {'C&C':2.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':6.5} },
+                        { id: 'cko_presto3', name: 'GILLETTE (PRESTOR 3)', scores: {'C&C':2, 'DPP':2.5, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
+                        { id: 'cko_venus', name: 'VENUS', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':0} },
+                        { id: 'cko_escovas', name: 'ESCOVAS', scores: {'C&C':2, 'DPP':1, 'HSM':2, 'LASA':2, 'CLUB':1} },
+                        { id: 'cko_cabelos', name: 'CABELOS', scores: {'C&C':1.5, 'DPP':6.5, 'HSM':1, 'LASA':1, 'CLUB':0} }
                     ],
                     PE: [
                         { id: 'pe_contrato', name: 'PE - Contrato (All)', scores: {'C&C':10, 'DPP':10, 'HSM':10, 'LASA':10, 'CLUB':10} },
@@ -212,31 +230,31 @@
                         { id: 'pe_conquistas', name: 'PE - Conquistas (All)', scores: {'C&C':3, 'DPP':3, 'HSM':3, 'LASA':3, 'CLUB':3} }
                     ],
                     KBDs: [
-                        { id: 'kbd_pantene_oleo', name: 'Pantene pontos de contato óleo', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':0} },
-                        { id: 'kbd_pantene_dourado', name: 'Pantene rio dourado', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':2} },
-                        { id: 'kbd_pantene_bond20', name: 'Pantene Bond Repair 20%', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':2} },
-                        { id: 'kbd_pantene_bond30', name: 'Pantene Bond Repair 30%', scores: {'C&C':0, 'DPP':0, 'HSM':0, 'LASA':0, 'CLUB':0} },
-                        { id: 'kbd_pantene_top', name: 'Pantene top collections', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':0} },
-                        { id: 'kbd_oralb_branq', name: 'Oral B Branqueamento', scores: {'C&C':3.5, 'DPP':3, 'HSM':3, 'LASA':3, 'CLUB':3} },
-                        { id: 'kbd_oralb_extras', name: 'Oral B Pontos Extras', scores: {'C&C':1, 'DPP':1.5, 'HSM':1, 'LASA':1, 'CLUB':0} },
-                        { id: 'kbd_oralb_bipe', name: 'Oral B BIPE', scores: {'C&C':1, 'DPP':1.5, 'HSM':1, 'LASA':1, 'CLUB':2} },
-                        { id: 'kbd_pampers_grandes', name: 'Pampers tam. Grandes', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':1.5} },
-                        { id: 'kbd_pampers_pants', name: 'Pampers % pants', scores: {'C&C':0, 'DPP':0, 'HSM':0, 'LASA':0, 'CLUB':0} },
-                        { id: 'kbd_pampers_premium', name: 'Pampers % Pants + Premium', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':1.5} },
-                        { id: 'kbd_pampers_vnight', name: 'Pampers Vale Night', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':3.5} },
-                        { id: 'kbd_downy_grandes', name: 'Downy tam. Grandes', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'LASA':2, 'CLUB':3} },
-                        { id: 'kbd_downy_colorido', name: 'Downy Bloco Colorido', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'LASA':2, 'CLUB':3} },
-                        { id: 'kbd_downy_azul', name: 'Downy Bloco Azul', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'LASA':2, 'CLUB':3} },
-                        { id: 'kbd_gillette_sist25', name: 'Gillette sistemas 25%', scores: {'C&C':2, 'DPP':0, 'HSM':0, 'LASA':0, 'CLUB':0} },
-                        { id: 'kbd_gillette_sist35', name: 'Gillette sistemas 35%', scores: {'C&C':0, 'DPP':0, 'HSM':1.5, 'LASA':1.5, 'CLUB':2} },
-                        { id: 'kbd_gillette_grandes', name: 'Gillette tamanhos grandes', scores: {'C&C':2, 'DPP':2, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
-                        { id: 'kbd_gillette_m3', name: 'Gillette carga m3', scores: {'C&C':0, 'DPP':2, 'HSM':0, 'LASA':0, 'CLUB':0} },
-                        { id: 'kbd_venus_sist', name: 'Venus sistemas', scores: {'C&C':2, 'DPP':0, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
-                        { id: 'kbd_venus_pcontato', name: 'Venus pontos de contato', scores: {'C&C':0, 'DPP':1, 'HSM':0, 'LASA':0, 'CLUB':0} },
-                        { id: 'kbd_venus_iara', name: 'Venus iara no cko', scores: {'C&C':3, 'DPP':3, 'HSM':3, 'LASA':3, 'CLUB':0} },
-                        { id: 'kbd_secret_2band', name: 'Secret 2bandejas', scores: {'C&C':0, 'DPP':3, 'HSM':0, 'LASA':0, 'CLUB':0} },
-                        { id: 'kbd_secret_3band', name: 'Secret 15frentes/3bandejas', scores: {'C&C':3, 'DPP':0, 'HSM':3, 'LASA':3, 'CLUB':0} },
-                        { id: 'kbd_always_suave', name: 'Always % suave', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':2.5} }
+                        { id: 'kbd_pantene_oleo', name: '2 PONTOS DE CONTATO COM FINALIZADORES(ÓLEO,SÉRUM E LEAVE-IN)', scores: {'C&C':2, 'DPP':3, 'HSM':2, 'LASA':2, 'CLUB':0} },
+                        { id: 'kbd_pantene_bond20', name: '20% DA GÔNDOLA COM PANTENE BOND REPAIR', scores: {'C&C':2, 'DPP':3, 'HSM':2, 'LASA':2, 'CLUB':2} },
+                        { id: 'kbd_pantene_6frentes', name: '6 FRENTES ÓLEO, SÉRUM E LEAVE-IN', scores: {'C&C':2, 'DPP':0, 'HSM':1, 'LASA':1, 'CLUB':1} },
+                        { id: 'kbd_pantene_8frentes', name: '8 FRENTES ÓLEO, SÉRUM E LEAVE-IN', scores: {'C&C':0, 'DPP':3, 'HSM':0, 'LASA':0, 'CLUB':0} },
+                        { id: 'kbd_oralb_branq', name: '60% CREMES DE BRANQUEAMENTO', scores: {'C&C':3, 'DPP':3, 'HSM':3, 'LASA':3, 'CLUB':3} },
+                        { id: 'kbd_oralb_extras', name: '2 PONTOS DE CONTATO DE ESCOVAS', scores: {'C&C':1, 'DPP':1, 'HSM':1, 'LASA':1, 'CLUB':0} },
+                        { id: 'kbd_oralb_bipe', name: 'GÔNDOLA DE ESCOVAS COM BIPE', scores: {'C&C':1, 'DPP':1, 'HSM':1, 'LASA':1, 'CLUB':2} },
+                        { id: 'kbd_pampers_grandes', name: 'PONTO EXTRA PAMPERS XG/XXG/XXXG', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':1.5} },
+                        { id: 'kbd_pampers_vnight', name: 'VALE NIGHT COMUNICAÇÃO E MAMADEIRA (PONTO EXTRA)', scores: {'C&C':0, 'DPP':3, 'HSM':0, 'LASA':0, 'CLUB':0} },
+                        { id: 'kbd_pampers_pants', name: '% PANTS NA GÔNDOLA', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'LASA':1.5, 'CLUB':1.5} },
+                        { id: 'kbd_pampers_vnight2', name: 'VALE NIGHT FAIXA E MAMADEIRA (GÔNDOLA)', scores: {'C&C':3, 'DPP':0, 'HSM':1.5, 'LASA':1.5, 'CLUB':3.5} },
+                        { id: 'kbd_downy_grandes', name: 'PONTO EXTRA DE DOWNY COM BRISAS/VERÃO TROPICAL', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'LASA':2, 'CLUB':3} },
+                        { id: 'kbd_downy_colorido', name: '40% DE BLOCO COLORIDO DE DOWNY', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'LASA':2, 'CLUB':3} },
+                        { id: 'kbd_downy_azul', name: '50% DE BLOCO AZUL DE DOWNY', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'LASA':2, 'CLUB':3} },
+                        { id: 'kbd_gillette_sist25', name: '% SISTEMAS GILLETTE (25% C&C)', scores: {'C&C':2, 'DPP':0, 'HSM':0, 'LASA':0, 'CLUB':0} },
+                        { id: 'kbd_gillette_sist35', name: '% SISTEMAS GILLETTE (35% EXCETO C&C)', scores: {'C&C':0, 'DPP':0, 'HSM':1.5, 'LASA':1.5, 'CLUB':2} },
+                        { id: 'kbd_gillette_pcontato', name: '2 PONTOS DE CONTATO MACH3/PRESTO 3/SENSITIVE', scores: {'C&C':0, 'DPP':2, 'HSM':0, 'LASA':0, 'CLUB':0} },
+                        { id: 'kbd_gillette_m3', name: '2 GANCHOS CARGA MACH3 C/8', scores: {'C&C':0, 'DPP':2, 'HSM':0, 'LASA':0, 'CLUB':0} },
+                        { id: 'kbd_gillette_pcontato3', name: '3 PONTOS DE CONTATO MACH3/PRESTO 3/SENSITIVE', scores: {'C&C':2, 'DPP':0, 'HSM':1.5, 'LASA':1.5, 'CLUB':0} },
+                        { id: 'kbd_venus_pcontatov', name: '3 PONTOS DE CONTATO VENUS', scores: {'C&C':3, 'DPP':3, 'HSM':1, 'LASA':1, 'CLUB':1} },
+                        { id: 'kbd_venus_iara', name: 'APARELHO VENUS PELE SENSIVEL NO CKO', scores: {'C&C':1, 'DPP':1, 'HSM':3, 'LASA':3, 'CLUB':0} },
+                        { id: 'kbd_secret_2band', name: '10 FRENTES OU 2 BANDEJAS DE SECRET', scores: {'C&C':0, 'DPP':3, 'HSM':0, 'LASA':0, 'CLUB':0} },
+                        { id: 'kbd_secret_3band', name: '15 FRENTES OU 3 BANDEJAS DE SECRET', scores: {'C&C':3, 'DPP':0, 'HSM':3, 'LASA':3, 'CLUB':0} },
+                        { id: 'kbd_always_suave', name: '70% DE SUAVE EM ALWAYS', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'LASA':2, 'CLUB':2.5} },
+                        { id: 'kbd_tampax_bandeja', name: 'BANDEJA TAMPAX', scores: {'C&C':0, 'DPP':0.1, 'HSM':0, 'LASA':0, 'CLUB':0} },
                     ]
                 }
             },
@@ -244,16 +262,17 @@
                 channels: ['C&C', 'DPP', 'HSM', 'HFS', 'PERF'],
                 items: {
                     SOS: [
-                        { id: 'sos_gillette', name: 'Gillette', scores: {'C&C':4, 'DPP':3.5, 'HSM':4.5, 'HFS':5.5, 'PERF':0} },
-                        { id: 'sos_downy', name: 'Downy', scores: {'C&C':9, 'DPP':0, 'HSM':9, 'HFS':9, 'PERF':0} },
-                        { id: 'sos_pampers', name: 'Pampers', scores: {'C&C':3.5, 'DPP':9, 'HSM':5, 'HFS':7, 'PERF':0} },
-                        { id: 'sos_venus', name: 'Venus', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'HFS':2.5, 'PERF':0} },
-                        { id: 'sos_escovas', name: 'Escovas', scores: {'C&C':3, 'DPP':2.5, 'HSM':3.5, 'HFS':4.5, 'PERF':0} },
-                        { id: 'sos_cabelos', name: 'Cabelos', scores: {'C&C':3, 'DPP':3.5, 'HSM':4, 'HFS':5, 'PERF':0} },
-                        { id: 'sos_always', name: 'Always', scores: {'C&C':2.5, 'DPP':3, 'HSM':2, 'HFS':2, 'PERF':0} },
-                        { id: 'sos_cremes', name: 'Cremes', scores: {'C&C':3, 'DPP':2.5, 'HSM':3, 'HFS':3.5, 'PERF':0} },
-                        { id: 'sos_oldspice', name: 'Old Spice', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'HFS':1.5, 'PERF':0} },
-                        { id: 'sos_secret', name: 'Secret', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'HFS':1.5, 'PERF':0} }
+                        { id: 'sos_gillette', name: 'GILLETTE', scores: {'C&C':4, 'DPP':3.5, 'HSM':4.5, 'HFS':5.5, 'PERF':0} },
+                        { id: 'sos_downy', name: 'DOWNY', scores: {'C&C':9, 'DPP':0, 'HSM':9, 'HFS':9, 'PERF':0} },
+                        { id: 'sos_pampers', name: 'PAMPERS', scores: {'C&C':3.5, 'DPP':9, 'HSM':5, 'HFS':7, 'PERF':0} },
+                        { id: 'sos_venus', name: 'VENUS', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'HFS':2.5, 'PERF':0} },
+                        { id: 'sos_escovas', name: 'ORAL-B ESCOVAS', scores: {'C&C':3, 'DPP':2.5, 'HSM':3.5, 'HFS':4.5, 'PERF':0} },
+                        { id: 'sos_cabelos', name: 'CABELOS', scores: {'C&C':3, 'DPP':3.5, 'HSM':4, 'HFS':5, 'PERF':0} },
+                        { id: 'sos_always', name: 'ALWAYS', scores: {'C&C':2.5, 'DPP':3, 'HSM':2, 'HFS':2, 'PERF':0} },
+                        { id: 'sos_cremes', name: 'ORAL-B CREME DENTAL', scores: {'C&C':3, 'DPP':2.5, 'HSM':3, 'HFS':3.5, 'PERF':0} },
+                        { id: 'sos_oldspice', name: 'DES. OLD SPICE/GILLETTE', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'HFS':1.5, 'PERF':0} },
+                        { id: 'sos_secret', name: 'DES. SECRET', scores: {'C&C':2, 'DPP':1.5, 'HSM':1.5, 'HFS':1.5, 'PERF':0} },
+                        { id: 'sos_tampax', name: 'TAMPAX', scores: {'C&C':0.10, 'DPP':0.1, 'HSM':0.10, 'HFS':0.10, 'PERF':0} }
                     ],
                     CKO: [
                         { id: 'cko_60', name: '60%', scores: {'C&C':10, 'DPP':15, 'HSM':8, 'HFS':10, 'PERF':34} },
@@ -267,31 +286,31 @@
                         { id: 'pe_conquistas', name: 'PE - Conquistas (All)', scores: {'C&C':3, 'DPP':3, 'HSM':3, 'HFS':3, 'PERF':4} }
                     ],
                     KBDs: [
-                        { id: 'kbd_pantene_oleo', name: 'Pantene pontos de contato óleo', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
-                        { id: 'kbd_pantene_dourado', name: 'Pantene rio dourado', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
-                        { id: 'kbd_pantene_bond20', name: 'Pantene Bond Repair 20%', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
-                        { id: 'kbd_pantene_bond30', name: 'Pantene Bond Repair 30%', scores: {'C&C':0, 'DPP':0, 'HSM':0, 'HFS':0, 'PERF':0} },
-                        { id: 'kbd_pantene_top', name: 'Pantene top collections', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
-                        { id: 'kbd_oralb_branq', name: 'Oral B Branqueamento', scores: {'C&C':3.5, 'DPP':3, 'HSM':3, 'HFS':3, 'PERF':3.0} },
-                        { id: 'kbd_oralb_extras', name: 'Oral B Pontos Extras', scores: {'C&C':1, 'DPP':1.5, 'HSM':1, 'HFS':1, 'PERF':1.0} },
-                        { id: 'kbd_oralb_bipe', name: 'Oral B BIPE', scores: {'C&C':1, 'DPP':1.5, 'HSM':1, 'HFS':1, 'PERF':2.0} },
-                        { id: 'kbd_pampers_grandes', name: 'Pampers tam. Grandes', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'HFS':0, 'PERF':0} },
-                        { id: 'kbd_pampers_pants', name: 'Pampers % pants', scores: {'C&C':0, 'DPP':0, 'HSM':0, 'HFS':0, 'PERF':0} },
-                        { id: 'kbd_pampers_premium', name: 'Pampers % Pants + Premium', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'HFS':0, 'PERF':1.0} },
-                        { id: 'kbd_pampers_vnight', name: 'Pampers Vale Night', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'HFS':3, 'PERF':3.0} },
-                        { id: 'kbd_downy_grandes', name: 'Downy tam. Grandes', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'HFS':1, 'PERF':0} },
-                        { id: 'kbd_downy_colorido', name: 'Downy Bloco Colorido', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'HFS':1, 'PERF':0} },
-                        { id: 'kbd_downy_azul', name: 'Downy Bloco Azul', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'HFS':1, 'PERF':0} },
-                        { id: 'kbd_gillette_sist25', name: 'Gillette sistemas 25%', scores: {'C&C':2, 'DPP':0, 'HSM':0, 'HFS':0, 'PERF':0} },
-                        { id: 'kbd_gillette_sist35', name: 'Gillette sistemas 35%', scores: {'C&C':0, 'DPP':0, 'HSM':1.5, 'HFS':1.5, 'PERF':3.0} },
-                        { id: 'kbd_gillette_grandes', name: 'Gillette tamanhos grandes', scores: {'C&C':2, 'DPP':2, 'HSM':1.5, 'HFS':1.5, 'PERF':3.0} },
-                        { id: 'kbd_gillette_m3', name: 'Gillette carga m3', scores: {'C&C':0, 'DPP':2, 'HSM':0, 'HFS':0, 'PERF':0} },
-                        { id: 'kbd_venus_sist', name: 'Venus sistemas', scores: {'C&C':2, 'DPP':0, 'HSM':1.5, 'HFS':1, 'PERF':0} },
-                        { id: 'kbd_venus_pcontato', name: 'Venus pontos de contato', scores: {'C&C':0, 'DPP':1, 'HSM':0, 'HFS':0, 'PERF':3.0} },
-                        { id: 'kbd_venus_iara', name: 'Venus iara no cko', scores: {'C&C':3, 'DPP':3, 'HSM':3, 'HFS':3, 'PERF':0} },
-                        { id: 'kbd_secret_2band', name: 'Secret 2bandejas', scores: {'C&C':0, 'DPP':3, 'HSM':0, 'HFS':0, 'PERF':0} },
-                        { id: 'kbd_secret_3band', name: 'Secret 15frentes/3bandejas', scores: {'C&C':3, 'DPP':0, 'HSM':3, 'HFS':0, 'PERF':3.0} },
-                        { id: 'kbd_always_suave', name: 'Always % suave', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'HFS':1, 'PERF':3.0} }
+                        { id: 'kbd_pantene_oleo', name: '2 PONTOS DE CONTATO COM FINALIZADORES(ÓLEO,SÉRUM E LEAVE-IN)', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
+                        { id: 'kbd_pantene_bond20', name: '20% DA GÔNDOLA COM PANTENE BOND REPAIR', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
+                        { id: 'kbd_pantene_6frentes', name: '6 FRENTES ÓLEO, SÉRUM E LEAVE-IN', scores: {'C&C':0, 'DPP':0, 'HSM':0, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_pantene_8frentes', name: '8 FRENTES ÓLEO, SÉRUM E LEAVE-IN', scores: {'C&C':1.5, 'DPP':2, 'HSM':2, 'HFS':1.5, 'PERF':2.5} },
+                        { id: 'kbd_oralb_branq', name: '60% CREMES DE BRANQUEAMENTO', scores: {'C&C':3.5, 'DPP':3, 'HSM':3, 'HFS':3, 'PERF':3.0} },
+                        { id: 'kbd_oralb_extras', name: '2 PONTOS DE CONTATO DE ESCOVAS', scores: {'C&C':1, 'DPP':1.5, 'HSM':1, 'HFS':1, 'PERF':1.0} },
+                        { id: 'kbd_oralb_bipe', name: 'GÔNDOLA DE ESCOVAS COM BIPE', scores: {'C&C':1, 'DPP':1.5, 'HSM':1, 'HFS':1, 'PERF':2.0} },
+                        { id: 'kbd_pampers_grandes', name: 'PONTO EXTRA PAMPERS XG/XXG/XXXG', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_pampers_vnight', name: 'VALE NIGHT COMUNICAÇÃO E MAMADEIRA (PONTO EXTRA)', scores: {'C&C':0, 'DPP':0, 'HSM':0, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_pampers_pants', name: '% PANTS NA GÔNDOLA', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'HFS':0, 'PERF':1.0} },
+                        { id: 'kbd_pampers_vnight2', name: 'VALE NIGHT FAIXA E MAMADEIRA (GÔNDOLA)', scores: {'C&C':1.5, 'DPP':3, 'HSM':1.5, 'HFS':3, 'PERF':3.0} },
+                        { id: 'kbd_downy_grandes', name: 'PONTO EXTRA DE DOWNY COM BRISAS/VERÃO TROPICAL', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'HFS':1, 'PERF':0} },
+                        { id: 'kbd_downy_colorido', name: '40% DE BLOCO COLORIDO DE DOWNY', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'HFS':1, 'PERF':0} },
+                        { id: 'kbd_downy_azul', name: '50% DE BLOCO AZUL DE DOWNY', scores: {'C&C':2, 'DPP':0, 'HSM':2, 'HFS':1, 'PERF':0} },
+                        { id: 'kbd_gillette_sist25', name: '% SISTEMAS GILLETTE (25% C&C)', scores: {'C&C':2, 'DPP':0, 'HSM':0, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_gillette_sist35', name: '% SISTEMAS GILLETTE (35% EXCETO C&C)', scores: {'C&C':0, 'DPP':0, 'HSM':1.5, 'HFS':1.5, 'PERF':3.0} },
+                        { id: 'kbd_gillette_pcontato', name: '2 PONTOS DE CONTATO MACH3/PRESTO 3/SENSITIVE', scores: {'C&C':0, 'DPP':2, 'HSM':0, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_gillette_m3', name: '2 GANCHOS CARGA MACH3 C/8', scores: {'C&C':0, 'DPP':2, 'HSM':0, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_venus_pcontato', name: '3 PONTOS DE CONTATO MACH3/PRESTO 3/SENSITIVE', scores: {'C&C':2, 'DPP':0, 'HSM':1, 'HFS':1, 'PERF':1} },
+                        { id: 'kbd_venus_pcontato3', name: '3 PONTOS DE CONTATO VENUS', scores: {'C&C':2, 'DPP':1, 'HSM':3, 'HFS':0, 'PERF':3.0} },
+                        { id: 'kbd_venus_iara', name: 'APARELHO VENUS PELE SENSIVEL NO CKO', scores: {'C&C':3, 'DPP':3, 'HSM':3, 'HFS':3, 'PERF':0} },
+                        { id: 'kbd_secret_2band', name: '10 FRENTES OU 2 BANDEJAS DE SECRET', scores: {'C&C':0, 'DPP':3, 'HSM':0, 'HFS':0, 'PERF':0} },
+                        { id: 'kbd_secret_3band', name: '15 FRENTES OU 3 BANDEJAS DE SECRET', scores: {'C&C':3, 'DPP':0, 'HSM':3, 'HFS':0, 'PERF':3.0} },
+                        { id: 'kbd_always_suave', name: '70% DE SUAVE EM ALWAYS', scores: {'C&C':2, 'DPP':2, 'HSM':2, 'HFS':1, 'PERF':3.0} },
+                        { id: 'kbd_tampax_bandeja', name: 'BANDEJA TAMPAX', scores: {'C&C':0, 'DPP':0.1, 'HSM':0, 'HFS':0, 'PERF':0} },
                     ]
                 }
             }
@@ -609,13 +628,21 @@
             `;
 
             const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = nomeArquivo;
             
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Fallback para iOS/Safari que não suporta download via link.click()
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent))) {
+                // Para iOS: abre o Blob como data URL em nova aba
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } else {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = nomeArquivo;
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         }
 
         // ==========================================
@@ -666,16 +693,13 @@
             text += `----------------------------------\n`;
             text += `_Gerado via Simulador de Pontuação_`;
 
-            // Abre o link direto do WhatsApp
+            // Abre o link direto do WhatsApp (compatível com smartphones)
             const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(text)}`;
-            window.open(urlWhatsApp, '_blank');
-        }
-
-        // Service Worker (PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
-            });
+            // Tenta abrir em nova aba, com fallback para localização direta
+            const opened = window.open(urlWhatsApp, '_blank');
+            if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+                window.location.href = urlWhatsApp;
+            }
         }
 
         // Inicia o app
