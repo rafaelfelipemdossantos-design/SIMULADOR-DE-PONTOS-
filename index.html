@@ -11,8 +11,11 @@
     <meta name="format-detection" content="telephone=no">
     <title>Simulador de Pontuação</title>
 
-    <!-- Manifest inline para PWA -->
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiU2ltdWxhZG9yIGRlIFBvbnR1w6fDo28iLCJzaG9ydF9uYW1lIjoiU2ltdWxhZG9yIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjE3MmEiLCJ0aGVtZV9jb2xvciI6IiMwZjE3MmEifQ==">
+    <!-- Manifest para PWA -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Ícone Apple Touch para iOS -->
+    <link rel="apple-touch-icon" href="./icon.png">
 
     <!-- Tailwind CSS para um visual moderno e limpo -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -704,6 +707,21 @@
 
         // Inicia o app
         changeModel('lego');
+    </script>
+
+    <!-- Registro do Service Worker para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                    .then(function(registration) {
+                        console.log('SW registrado com sucesso:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('Falha no registro do SW:', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
