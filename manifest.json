@@ -1,6 +1,6 @@
 {
-  "short_name": "Simulador KPI",
-  "name": "Simulador de Pontuação de Varejo",
+  "short_name": "Simulador Pts",
+  "name": "Simulador de Pontos",
   "icons": [
     {
       "src": "icon.png",
