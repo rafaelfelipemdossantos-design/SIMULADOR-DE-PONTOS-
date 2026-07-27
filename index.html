@@ -405,6 +405,11 @@
             }
         }
 
+        // Função auxiliar para arredondar para 1 casa decimal e remover zeros desnecessários
+        function round1(val) {
+            return Math.round(val * 10) / 10;
+        }
+
         function setResponse(id, value) {
             responses[id] = value;
             
@@ -437,16 +442,16 @@
                 });
                 
                 const lbl = document.getElementById(`section-total-${sec}`);
-                if (lbl) lbl.innerText = `${totals[sec].got} / ${totals[sec].max} pts`;
+                if (lbl) lbl.innerText = `${round1(totals[sec].got)} / ${round1(totals[sec].max)} pts`;
             }
 
-            document.getElementById('dash-sos').innerText = `${totals.SOS.got} / ${totals.SOS.max}`;
-            document.getElementById('dash-cko').innerText = `${totals.CKO.got} / ${totals.CKO.max}`;
-            document.getElementById('dash-pe').innerText = `${totals.PE.got} / ${totals.PE.max}`;
-            document.getElementById('dash-kbds').innerText = `${totals.KBDs.got} / ${totals.KBDs.max}`;
+            document.getElementById('dash-sos').innerText = `${round1(totals.SOS.got)} / ${round1(totals.SOS.max)}`;
+            document.getElementById('dash-cko').innerText = `${round1(totals.CKO.got)} / ${round1(totals.CKO.max)}`;
+            document.getElementById('dash-pe').innerText = `${round1(totals.PE.got)} / ${round1(totals.PE.max)}`;
+            document.getElementById('dash-kbds').innerText = `${round1(totals.KBDs.got)} / ${round1(totals.KBDs.max)}`;
             
-            const grandTotalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
-            const grandTotalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
+            const grandTotalGot = round1(totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got);
+            const grandTotalMax = round1(totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max);
             
             document.getElementById('dash-total').innerText = `${grandTotalGot} / ${grandTotalMax}`;
 
@@ -539,8 +544,8 @@
                 });
             }
             
-            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
-            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
+            const totalGot = round1(totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got);
+            const totalMax = round1(totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max);
             
             let bgGradient = 'linear-gradient(135deg, #9ca3af, #cbd5e1)'; 
             let textColor = '#ffffff';
@@ -608,7 +613,7 @@
 
                     <div class="score-box">
                         <h2>SCORE ATINGIDO</h2>
-                        <div class="score-value">${totalGot} <span>/ ${totalMax}</span></div>
+                        <div class="score-value">${round1(totalGot)} <span>/ ${round1(totalMax)}</span></div>
                         <div class="badge">${currentStatusText}</div>
                     </div>
 
@@ -671,8 +676,8 @@
                 });
             }
             
-            const totalGot = totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got;
-            const totalMax = totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max;
+            const totalGot = round1(totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got);
+            const totalMax = round1(totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max);
 
             let statusEmoji = '⚪';
             if (totalGot > 90) statusEmoji = '🟢';
@@ -686,12 +691,12 @@
             text += `📅 *Data:* ${dataStr} às ${horaStr}\n`;
             text += `🏢 *Modelo:* ${modelNames[currentModel]} | *Canal:* ${currentChannel}\n`;
             text += `----------------------------------\n`;
-            if(totals.SOS.max > 0) text += `🔸 *SOS:* ${totals.SOS.got}/${totals.SOS.max}\n`;
-            if(totals.CKO.max > 0) text += `🔸 *CKO/CKT:* ${totals.CKO.got}/${totals.CKO.max}\n`;
-            if(totals.PE.max > 0) text += `🔸 *PE:* ${totals.PE.got}/${totals.PE.max}\n`;
-            if(totals.KBDs.max > 0) text += `🔸 *KBDs:* ${totals.KBDs.got}/${totals.KBDs.max}\n`;
+            if(totals.SOS.max > 0) text += `🔸 *SOS:* ${round1(totals.SOS.got)}/${round1(totals.SOS.max)}\n`;
+            if(totals.CKO.max > 0) text += `🔸 *CKO/CKT:* ${round1(totals.CKO.got)}/${round1(totals.CKO.max)}\n`;
+            if(totals.PE.max > 0) text += `🔸 *PE:* ${round1(totals.PE.got)}/${round1(totals.PE.max)}\n`;
+            if(totals.KBDs.max > 0) text += `🔸 *KBDs:* ${round1(totals.KBDs.got)}/${round1(totals.KBDs.max)}\n`;
             text += `----------------------------------\n`;
-            text += `🏆 *TOTAL:* *${totalGot}* / ${totalMax} pts\n`;
+            text += `🏆 *TOTAL:* *${round1(totalGot)}* / ${round1(totalMax)} pts\n`;
             text += `${statusEmoji} *STATUS:* *${currentStatusText}*\n`;
             text += `----------------------------------\n`;
             text += `_Gerado via Simulador de Pontuação_`;
