@@ -466,7 +466,7 @@
             let textClass = 'text-white';
             let barWidth = '0%';
 
-            if (pontos > 90) {
+            if (pontos > 95) {
                 currentStatusText = 'PERFEITA';
                 colorClass = 'bg-gradient-to-r from-green-500 to-green-400';
                 barWidth = '100%';
@@ -549,7 +549,7 @@
             
             let bgGradient = 'linear-gradient(135deg, #9ca3af, #cbd5e1)'; 
             let textColor = '#ffffff';
-            if (totalGot > 90) { bgGradient = 'linear-gradient(135deg, #16a34a, #4ade80)'; }
+            if (totalGot > 95) { bgGradient = 'linear-gradient(135deg, #16a34a, #4ade80)'; }
             else if (totalGot > 65) { bgGradient = 'linear-gradient(135deg, #2563eb, #60a5fa)'; }
             else if (totalGot > 35) { bgGradient = 'linear-gradient(135deg, #eab308, #fde047)'; textColor = '#713f12'; }
             else if (totalGot > 0) { bgGradient = 'linear-gradient(135deg, #dc2626, #f87171)'; }
@@ -680,7 +680,7 @@
             const totalMax = round1(totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max);
 
             let statusEmoji = '⚪';
-            if (totalGot > 90) statusEmoji = '🟢';
+            if (totalGot > 95) statusEmoji = '🟢';
             else if (totalGot > 65) statusEmoji = '🔵';
             else if (totalGot > 35) statusEmoji = '🟡';
             else if (totalGot > 0) statusEmoji = '🔴';
