@@ -410,18 +410,45 @@
             return Math.round(val * 10) / 10;
         }
 
+        // Storeplat: CKO/CKT conta só a MAIOR opção do canal (e só uma pode ser SIM)
+        function isCkoExclusivo(sec) {
+            return currentModel === 'storeplatform' && sec === 'CKO';
+        }
+
+        function calcSectionTotals(sec, items) {
+            let got = 0, max = 0;
+            items.forEach(item => {
+                const w = item.scores[currentChannel] || 0;
+                if (w <= 0) return;
+                if (isCkoExclusivo(sec)) {
+                    max = Math.max(max, w);
+                    if (responses[item.id] === true) got = Math.max(got, w);
+                } else {
+                    max += w;
+                    if (responses[item.id] === true) got += w;
+                }
+            });
+            return { got, max };
+        }
+
         function setResponse(id, value) {
             responses[id] = value;
-            
+
             const btnSim = document.getElementById(`btn-sim-${id}`);
             const btnNao = document.getElementById(`btn-nao-${id}`);
-            
-            if (value) {
-                btnSim.classList.add('active');
-                btnNao.classList.remove('active');
-            } else {
-                btnSim.classList.remove('active');
-                btnNao.classList.add('active');
+            btnSim.classList.toggle('active', value === true);
+            btnNao.classList.toggle('active', value === false);
+
+            // CKO/CKT do Storeplat: ao marcar SIM, as outras opções viram NÃO
+            if (value === true && currentModel === 'storeplatform' && id.startsWith('cko_')) {
+                db.storeplatform.items.CKO.forEach(it => {
+                    if (it.id === id) return;
+                    responses[it.id] = false;
+                    const s = document.getElementById(`btn-sim-${it.id}`);
+                    const n = document.getElementById(`btn-nao-${it.id}`);
+                    if (s) s.classList.remove('active');
+                    if (n) n.classList.add('active');
+                });
             }
             calculateScores();
         }
@@ -431,15 +458,7 @@
             
             const sections = db[currentModel].items;
             for (let sec in sections) {
-                sections[sec].forEach(item => {
-                    const weight = item.scores[currentChannel] || 0;
-                    if (weight > 0) {
-                        totals[sec].max += weight;
-                        if (responses[item.id] === true) {
-                            totals[sec].got += weight;
-                        }
-                    }
-                });
+                totals[sec] = calcSectionTotals(sec, sections[sec]);
                 
                 const lbl = document.getElementById(`section-total-${sec}`);
                 if (lbl) lbl.innerText = `${round1(totals[sec].got)} / ${round1(totals[sec].max)} pts`;
@@ -529,13 +548,12 @@
             let listNao = '';
 
             for (let sec in sections) {
+                totals[sec] = calcSectionTotals(sec, sections[sec]);
                 sections[sec].forEach(item => {
                     const weight = item.scores[currentChannel] || 0;
                     if (weight > 0) {
-                        totals[sec].max += weight;
                         const labelSec = sec === 'CKO' ? 'CKO/CKT' : sec;
                         if (responses[item.id] === true) {
-                            totals[sec].got += weight;
                             listSim += `<li><span class="cat">[${labelSec}]</span> <span class="name">${item.name}</span> <span class="pts pts-sim">+${weight} pts</span></li>`;
                         } else if (responses[item.id] === false) {
                             listNao += `<li><span class="cat">[${labelSec}]</span> <span class="name">${item.name}</span> <span class="pts pts-nao">0 pts</span></li>`;
@@ -667,13 +685,7 @@
             const sections = db[currentModel].items;
             
             for (let sec in sections) {
-                sections[sec].forEach(item => {
-                    const weight = item.scores[currentChannel] || 0;
-                    if (weight > 0) {
-                        totals[sec].max += weight;
-                        if (responses[item.id] === true) totals[sec].got += weight;
-                    }
-                });
+                totals[sec] = calcSectionTotals(sec, sections[sec]);
             }
             
             const totalGot = round1(totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got);
