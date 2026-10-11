@@ -188,6 +188,14 @@
             </button>
         </div>
 
+        <!-- Envio automático para a central (planilha Google) -->
+        <div class="pb-8 -mt-4">
+            <button onclick="enviarCentral()" class="bg-gradient-to-r from-fuchsia-600 to-fuchsia-700 hover:from-fuchsia-700 hover:to-fuchsia-800 text-white font-bold py-3.5 px-4 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2.5 w-full text-sm">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Enviar para a central
+            </button>
+            <p id="sync-status" class="text-center text-xs text-slate-400 mt-2"></p>
+        </div>
+
     </main>
 
     <!-- Banco de Dados Integrado e Lógica -->
@@ -546,12 +554,14 @@
             
             let listSim = '';
             let listNao = '';
+            const dadosItens = [];
 
             for (let sec in sections) {
                 totals[sec] = calcSectionTotals(sec, sections[sec]);
                 sections[sec].forEach(item => {
                     const weight = item.scores[currentChannel] || 0;
                     if (weight > 0) {
+                        dadosItens.push({ s: sec, id: item.id, n: item.name, w: weight, r: responses[item.id] === true ? 1 : (responses[item.id] === false ? 0 : null), x: isCkoExclusivo(sec) ? 1 : 0 });
                         const labelSec = sec === 'CKO' ? 'CKO/CKT' : sec;
                         if (responses[item.id] === true) {
                             listSim += `<li><span class="cat">[${labelSec}]</span> <span class="name">${item.name}</span> <span class="pts pts-sim">+${weight} pts</span></li>`;
@@ -565,6 +575,14 @@
             const totalGot = round1(totals.SOS.got + totals.CKO.got + totals.PE.got + totals.KBDs.got);
             const totalMax = round1(totals.SOS.max + totals.CKO.max + totals.PE.max + totals.KBDs.max);
             
+            // Dados estruturados embutidos no relatório (lidos pelo Analisador de Auditorias)
+            const dadosJson = JSON.stringify({
+                loja, promotor, ts: agora.toISOString(), modelo: modelNames[currentModel], canal: currentChannel,
+                got: round1(totalGot), max: round1(totalMax), status: currentStatusText,
+                t: Object.fromEntries(Object.keys(totals).map(k => [k, { got: round1(totals[k].got), max: round1(totals[k].max) }])),
+                itens: dadosItens
+            }).replace(/</g, '\\u003c');
+
             let bgGradient = 'linear-gradient(135deg, #9ca3af, #cbd5e1)'; 
             let textColor = '#ffffff';
             if (totalGot > 95) { bgGradient = 'linear-gradient(135deg, #16a34a, #4ade80)'; }
@@ -649,6 +667,7 @@
                         </ul>
                     </div>
                 </div>
+                <script type="application/json" id="audit-data">${dadosJson}<\/script>
             </body>
             </html>
             `;
@@ -724,6 +743,51 @@
 
         // Inicia o app
         changeModel('lego');
+    </script>
+
+    <!-- Envio para a central (Google Planilhas) -->
+    <script>
+        // Configuração vem do link enviado pelo gestor: .../simulador/?u=URL_DO_SCRIPT&k=CHAVE_DE_ENVIO
+        (function(){const p=new URLSearchParams(location.search);if(p.get('u')&&p.get('k')){try{localStorage.setItem('sync',JSON.stringify({u:p.get('u'),k:p.get('k')}))}catch(e){}history.replaceState(null,'',location.pathname)}})();
+        const SY=()=>{try{return JSON.parse(localStorage.getItem('sync')||'null')}catch(e){return null}};
+        const FQ=()=>{try{return JSON.parse(localStorage.getItem('fila')||'[]')}catch(e){return[]}};
+        const setFQ=a=>{try{localStorage.setItem('fila',JSON.stringify(a))}catch(e){}};
+        function stSync(msg){const e=document.getElementById('sync-status');if(e)e.textContent=msg||(FQ().length?FQ().length+' envio(s) aguardando internet':(SY()?'Central conectada ✔':'Central não configurada'))}
+
+        function registroAtual(){
+            const loja=document.getElementById('input-loja').value.trim(),promotor=document.getElementById('input-promotor').value.trim();
+            const secs=db[currentModel].items,totals={},itens=[];let got=0,max=0;
+            for(const sec in secs){
+                const t=calcSectionTotals(sec,secs[sec]);totals[sec]={got:round1(t.got),max:round1(t.max)};got+=t.got;max+=t.max;
+                secs[sec].forEach(it=>{const w=it.scores[currentChannel]||0;if(w>0)itens.push({s:sec,id:it.id,n:it.name,w,r:responses[it.id]===true?1:(responses[it.id]===false?0:null),x:isCkoExclusivo(sec)?1:0})});
+            }
+            return{loja,promotor,ts:new Date().toISOString(),modelo:modelNames[currentModel],canal:currentChannel,got:round1(got),max:round1(max),status:currentStatusText,t:totals,itens};
+        }
+        async function enviarFila(){
+            const c=SY();let q=FQ(),erro='',rede=false;
+            if(!c||!navigator.onLine||!q.length){stSync();return{pend:q.length}}
+            for(const r of [...q]){
+                try{
+                    const res=await fetch(c.u,{method:'POST',body:JSON.stringify({chave:c.k,registro:r})}),j=await res.json();
+                    if(j.ok){q=q.filter(x=>!(x.ts===r.ts&&x.loja===r.loja&&x.canal===r.canal));setFQ(q)}else{erro=j.erro||'erro no servidor';break}
+                }catch(e){rede=true;break}
+            }
+            stSync(erro?'Erro: '+erro:null);return{pend:q.length,erro,rede};
+        }
+        async function enviarCentral(){
+            if(!SY()){alert('Envio não configurado. Abra o link de configuração enviado pelo gestor.');return}
+            const r=registroAtual();
+            if(!r.loja){alert('Preencha o nome da loja.');return}
+            if(!r.promotor)r.promotor='Não Informado';
+            if(!r.itens.some(i=>i.r!==null)){alert('Responda ao menos um item antes de enviar.');return}
+            const sig=JSON.stringify([r.loja,r.canal,r.itens.map(i=>i.r)]);
+            if(sig===localStorage.getItem('lastSig')&&!confirm('Esta auditoria já foi enviada. Enviar de novo?'))return;
+            setFQ([...FQ(),r]);try{localStorage.setItem('lastSig',sig)}catch(e){}
+            stSync('Enviando...');
+            const res=await enviarFila();
+            alert(res.erro?'Não foi possível enviar: '+res.erro:(res.pend?'Sem conexão: a auditoria ficou guardada e será enviada automaticamente quando a internet voltar.':'✅ Auditoria enviada para a central!'));
+        }
+        addEventListener('online',enviarFila);addEventListener('load',()=>{stSync();enviarFila()});
     </script>
 
     <!-- Registro do Service Worker para PWA -->
